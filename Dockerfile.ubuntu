@@ -26,4 +26,6 @@ ENV CREATE_TUN_DEVICE="true" \
 VOLUME /data
 VOLUME /control
 
+EXPOSE 9091
+
 CMD ["dumb-init", "/etc/openvpn/startVPN.sh"]

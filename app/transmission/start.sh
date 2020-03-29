@@ -19,4 +19,4 @@ fi
 echo "Setting TRANSMISSION_BIND_ADDRESS_IPV4 to ${tun_device} device ip"
 export TRANSMISSION_BIND_ADDRESS_IPV4=${tun_ip}
 
-exec /usr/bin/transmission-daemon --bind-address-ipv4 ${TRANSMISSION_BIND_ADDRESS_IPV4} &
+exec /usr/bin/transmission-daemon --bind-address-ipv4 ${TRANSMISSION_BIND_ADDRESS_IPV4} --download-dir "/data/completed" --incomplete-dir "/data/incomplete" --watch-dir "/data/watch" --logfile "/data/transmission.log" &
