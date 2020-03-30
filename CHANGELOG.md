@@ -1,5 +1,16 @@
 # Chanelog
 
+## Version 0.0.3
+
+* Customizing transmission options using config file (move from commandline options)
+* Use dockerize to exand config templates using env variables
+* Logging from both openvpn and transmission to log file in data dir with optional switchback
+
+**Bug Fix**
+
+* Fix mknod syntax in alpine
+
+
 ## Version 0.0.2
 
 * Utilize mounted dir for keeping data
