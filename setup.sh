@@ -6,12 +6,27 @@ IMAGE_TAG='docker-torrent-client'
 LOCAL_DATA_DIR=~/Downloads/uTorrent/data/
 
 SCRIPT_NAME="$( basename "${BASH_SOURCE[0]}" )"
+BASEDIR=$(dirname "$0")
 RED='\033[31m'        # Red
 NC='\033[0m'          # Color Reset
+YELLOW_ALT=$(echo -e "\033[1;33m")     # Yellow
+GREEN_ALT=$(echo -e "\033[1;32m")      # Green
+NC_ALT=$(echo -e "\033[0m")            # Color Reset
 ARG_USER=''
 ARG_PASS=''
 ARG_OS='ubuntu'
 ARG_DIR="${LOCAL_DATA_DIR}"
+ARG_PROVIDER=''
+OPENVPN_SERVERS="${BASEDIR}/app/openvpn/vpn_servers.json"
+
+# Highlight the message
+_highlight_msg() {
+    local msg="$*"
+    if [[ -n "${msg}" ]]; then
+        echo -e "\n ${RED} ${msg} ${NC}"
+        echo
+    fi
+}
 
 # Usage help
 _usage() {
@@ -28,13 +43,14 @@ _usage() {
     echo 'docker-torrent-client setup'
     echo
     echo 'Usage:'
-    echo "    ${SCRIPT_NAME} [-h|--help] <-u|--user username> <-p|--pass password> [-o|--os <ubuntu|alpine>] [-d|--data-dir <local-dir>]"
+    echo "    ${SCRIPT_NAME} M_ARGS [O_ARGS]"
     echo
-    echo 'Mandatory Arguments:'
-    echo '    -u|--user <username>          VPN Username'
-    echo '    -p|--pass <password>          VPN Password'
+    echo 'Mandatory Arguments (M_ARGS):'
+    echo '    -u|--user <username>              VPN Username'
+    echo '    -p|--pass <password>              VPN Password'
+    echo '    -v|--vpn-provider <vpn-provider>  VPN Provider (e.g: HideMe)'
     echo
-    echo 'Optional Arguments:'
+    echo 'Optional Arguments (O_ARGS):'
     echo '    -h|--help                     Print usage'
     echo '    -o|--os <ubuntu|alpine>       OS type, Default: ubuntu'
     echo "    -d|--data-dir <local-dir>     Local dir to mount for data (This should be added in Docker File Sharing Default: ${LOCAL_DATA_DIR}"
@@ -47,30 +63,30 @@ _usage() {
 
 # Get Options
 _getOptions() {
-    optspec=":hu:p:o:d:-:"
+    optspec=":hu:p:o:d:v:-:"
     while getopts "$optspec" opt; do
         case $opt in
             -)
                 case "${OPTARG}" in
                     user)
                         ARG_USER="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
-                        if [[ -z "${ARG_USER}" ]]; then
-                            _usage "Please provide a username"
-                            exit 1
-                        fi
+                        [[ ${ARG_USER} =~ ^-.* || "${ARG_USER}" = "" ]] && { _usage "Option --user requires an agument"; exit 1; }
                         ;;
                     pass)
                         ARG_PASS="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
-                        if [[ -z "${ARG_PASS}" ]]; then
-                            _usage "Please provide a password"
-                            exit 1
-                        fi
+                        [[ ${ARG_PASS} =~ ^-.* || "${ARG_PASS}" = "" ]] && { _usage "Option --pass requires an agument"; exit 1; }
+                        ;;
+                    vpn-provider)
+                        ARG_PROVIDER="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
+                        [[ ${ARG_PROVIDER} =~ ^-.* || "${ARG_PROVIDER}" = "" ]] && { _usage "Option --vpn-provider requires an agument"; exit 1; }
                         ;;
                     os)
                         ARG_OS="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
+                        [[ ${ARG_OS} =~ ^-.* || "${ARG_OS}" = "" ]] && { _usage "Option --os requires an agument"; exit 1; }
                         ;;
                     data-dir)
                         ARG_DIR="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
+                        [[ ${ARG_DIR} =~ ^-.* || "${ARG_DIR}" = "" ]] && { _usage "Option --data-dir requires an agument"; exit 1; }
                         ;;
                     help)
                         _usage
@@ -98,6 +114,9 @@ _getOptions() {
                 ;;
             o)
                 ARG_OS="${OPTARG}"
+                ;;
+            v)
+                ARG_PROVIDER="${OPTARG}"
                 ;;
             d)
                 ARG_DIR="${OPTARG}"
@@ -133,9 +152,13 @@ main() {
     elif [[ -z "${ARG_PASS}" ]]; then
         _usage "Password required !!!"
         exit 1
+    elif [[ -z "${ARG_PROVIDER}" ]]; then
+        _usage "VPN Provider name required !!!"
+        exit 1
     fi
 
-    local image_os=$(_lowercase "${ARG_OS}")
+    local image_os
+    image_os=$(_lowercase "${ARG_OS}")
 
     if ! [[ "${image_os}" == "ubuntu" ||  "${image_os}" == "alpine" ]]; then
         _usage "Choose os from ubuntu or alpine"
@@ -147,17 +170,50 @@ main() {
         exit 1
     fi
 
-    # Build the docker image
-    docker build --no-cache -t "${IMAGE_TAG}-${image_os}" -f Dockerfile.${image_os} app
+    local vpn_provider
+    vpn_provider=$(_lowercase "${ARG_PROVIDER}")
 
-    OPT='--cap-add=NET_ADMIN -d \\'
+    raw_serverlist=$(jq -r -c ."${vpn_provider}" "${OPENVPN_SERVERS}")
+    if [[ -z "${raw_serverlist}" ]] || [[ "${raw_serverlist}" == "null" ]]; then
+        echo "VPN Provider not supported !!!"
+        exit 1
+    fi
+    # Select VPN server from the list for given provider
+    serverlist=$(echo "${raw_serverlist}" | jq -r -c .[])
+    count=$(echo "${serverlist}" |wc -l)
+    option_list=$(echo "${serverlist}" | grep -n . | sed 's/:/:-->  /g' | column -t -s ':')
+    echo -e "${RED}SELECT THE SERVER FROM THE LIST :${NC}"
+    echo
+    echo "${option_list}" | sed "s/^\(.*-->  \)\(.*\)\$/${YELLOW_ALT}\1${NC_ALT}${GREEN_ALT}\2${NC_ALT}/g"
+    # if 1 option select that else prompt
+    if [[ ${count} -eq 1 ]]; then
+        line=1
+    else
+        until [[ $line =~ [0-9]+ ]]; do
+            echo -e -n "${RED}--> ${NC}"
+            read line
+        done
+    fi
+    vpn_server=$(echo "${serverlist}" | sed -n "${line}p" | awk '{ print $1 }')
+
+    # Build the docker image
+    docker build --no-cache -t "${IMAGE_TAG}-${image_os}" -f "Dockerfile.${image_os}" app
+
+    # Docker capability
+    OPT='-d --cap-add=NET_ADMIN \\'
+
     # Check if Docker IPv6 is enabled
-    local ipv6_enabled=$(docker network ls --filter Driver="bridge"  --format "{{.IPv6}}")
+    local ipv6_enabled
+    ipv6_enabled=$(docker network ls --filter Driver="bridge"  --format "{{.IPv6}}")
 
     # Disable IPv6 if Docker doesn't support it
     if [[ "${ipv6_enabled}" == "false" ]]; then
         OPT+='\n\t\t--sysctl net.ipv6.conf.all.disable_ipv6=0 \\'
     fi
+
+    # Get local IP
+    local local_ip
+    local_ip=$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p')
 
     # DNS IPs
     OPT+='\n\t\t--dns 8.8.8.8 \\'
@@ -166,16 +222,26 @@ main() {
     # Volume mount for Data
     OPT+='\n\t\t-v '${ARG_DIR}':/data \\'
 
+    # OpenVPN Provider
+    OPT+='\n\t\t-e OPENVPN_PROVIDER='\'${ARG_PROVIDER}\'' \\'
+    OPT+='\n\t\t-e OPENVPN_HOSTNAME='\'${vpn_server}\'' \\'
+
     # OpenVPN username and password
     OPT+='\n\t\t-e OPENVPN_USERNAME='\'${ARG_USER}\'' \\'
     OPT+='\n\t\t-e OPENVPN_PASSWORD='\'${ARG_PASS}\'' \\'
+
+    # Local network
+    OPT+='\n\t\t-e LOCAL_NETWORK='\'${local_ip}/32\'' \\'
+
+    # Port
+    OPT+='\n\t\t-p 9091:9091 \\'
 
     # Docker Image to run
     OPT+='\n\t\t'${IMAGE_TAG}'-'${image_os}':latest \n'
 
     # Run this command to start the docker
-    echo 'Execute this to start the docker '
-    printf "docker run ${OPT}"
+    _highlight_msg "Execute this to start the docker"
+    echo -e "docker run ${OPT}"
 }
 
 main "$@"
