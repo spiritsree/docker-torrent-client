@@ -8,6 +8,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update > /dev/null \
     && apt-get -y upgrade > /dev/null \
     && apt-get -y install --no-install-recommends software-properties-common git curl jq unzip > /dev/null \
+    && apt-get -y install --no-install-recommends iputils-ping > /dev/null \
     && apt-get -y install --no-install-recommends dumb-init > /dev/null \
     && add-apt-repository ppa:transmissionbt/ppa > /dev/null \
     && apt-get update > /dev/null \
@@ -22,6 +23,8 @@ ADD ./transmission/ /etc/transmission/
 ENV CREATE_TUN_DEVICE="true" \
     OPENVPN_USERNAME="NONE" \
     OPENVPN_PASSWORD="NONE" \
+    OPENVPN_PROVIDER="None" \
+    OPENVPN_HOSTNAME="None" \
     TRANSMISSION_ALT_SPEED_ENABLED=false \
     TRANSMISSION_ALT_SPEED_UP=50 \
     TRANSMISSION_ALT_SPEED_DOWN=50 \
@@ -93,10 +96,13 @@ ENV CREATE_TUN_DEVICE="true" \
     TRANSMISSION_RATIO_LIMIT_ENABLED=false \
     TRANSMISSION_HOME=/data/transmission-home \
     LOG_FILE=/data/application.log \
-    ENABLE_FILE_LOGGING=true
+    ENABLE_FILE_LOGGING=true \
+    HEALTH_CHECK_HOST=www.google.com
 
 VOLUME /data
 VOLUME /control
+
+HEALTHCHECK --interval=5m CMD /scripts/health.sh
 
 EXPOSE 9091
 

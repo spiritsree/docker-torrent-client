@@ -17,6 +17,8 @@ ADD ./transmission/ /etc/transmission/
 ENV CREATE_TUN_DEVICE="true" \
     OPENVPN_USERNAME="NONE" \
     OPENVPN_PASSWORD="NONE" \
+    OPENVPN_PROVIDER="None" \
+    OPENVPN_HOSTNAME="None" \
     TRANSMISSION_ALT_SPEED_ENABLED=false \
     TRANSMISSION_ALT_SPEED_UP=50 \
     TRANSMISSION_ALT_SPEED_DOWN=50 \
@@ -88,10 +90,13 @@ ENV CREATE_TUN_DEVICE="true" \
     TRANSMISSION_RATIO_LIMIT_ENABLED=false \
     TRANSMISSION_HOME=/data/transmission-home \
     LOG_FILE=/data/application.log \
-    ENABLE_FILE_LOGGING=true
+    ENABLE_FILE_LOGGING=true \
+    HEALTH_CHECK_HOST=www.google.com
 
 VOLUME /data
 VOLUME /control
+
+HEALTHCHECK --interval=5m CMD /scripts/health.sh
 
 EXPOSE 9091
 

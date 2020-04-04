@@ -2,6 +2,11 @@
 
 Docker torrent client with VPN
 
+## Requirements
+
+* [jq](https://stedolan.github.io/jq/)
+* [docker](https://www.docker.com/)
+
 ## Usage
 
 ```
@@ -24,6 +29,24 @@ Examples:
     setup.sh
     setup.sh -u user -p password
 ```
+
+## Accessing the UI
+
+Web UI can be accessed using browser extensions
+
+* [Chome](https://chrome.google.com/webstore/detail/transmission-easy-client/cmkphjiphbjkffbcbnjiaidnjhahnned?hl=en)
+* [FireFox](https://addons.mozilla.org/en-US/firefox/addon/transmission-easy-client/)
+* [Opera](https://addons.opera.com/en/extensions/details/transmission-easy-client/)
+
+**Config Parameters**
+
+| Param        | value from ENV                      |  Default          |
+|:------------:|:-----------------------------------:|:-----------------:|
+| **Username** | TRANSMISSION_RPC_USERNAME           | username          |
+| **Password** | TRANSMISSION_RPC_PASSWORD           | password          |
+| **IP**       | Localhost IP                        | 127.0.0.1         |
+| **Port**     | TRANSMISSION_RPC_PORT               | 9091              |
+| **Path**     | TRANSMISSION_RPC_URL and append rpc | /transmission/rpc |
 
 ## Reference
 
