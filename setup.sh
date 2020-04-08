@@ -170,6 +170,11 @@ main() {
         exit 1
     fi
 
+    if ! command -v jq > /dev/null; then
+        echo "Please install jq"
+        exit 1
+    fi
+
     local vpn_provider
     vpn_provider=$(_lowercase "${ARG_PROVIDER}")
 
