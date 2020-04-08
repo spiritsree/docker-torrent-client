@@ -141,6 +141,37 @@ _lowercase() {
     echo "${out}"
 }
 
+# Get VPN Server from displayed list
+_get_server() {
+    local  __resultvar=$1
+    local vpn_provider=$2
+
+    raw_serverlist=$(jq -r -c ."${vpn_provider}" "${OPENVPN_SERVERS}")
+    if [[ -z "${raw_serverlist}" ]] || [[ "${raw_serverlist}" == "null" ]]; then
+        server=""
+        eval $__resultvar="'$server'"
+    else
+        # Select VPN server from the list for given provider
+        serverlist=$(echo "${raw_serverlist}" | jq -r -c .[])
+        count=$(echo "${serverlist}" |wc -l)
+        option_list=$(echo "${serverlist}" | grep -n . | sed 's/:/:-->  /g' | column -t -s ':')
+        echo -e "${RED}SELECT THE SERVER FROM THE LIST :${NC}"
+        echo
+        echo "${option_list}" | sed "s/^\(.*-->  \)\(.*\)\$/${YELLOW_ALT}\1${NC_ALT}${GREEN_ALT}\2${NC_ALT}/g"
+        # if 1 option select that else prompt
+        if [[ ${count} -eq 1 ]]; then
+            line=1
+        else
+            until [[ $line =~ [0-9]+ ]]; do
+                echo -e -n "${RED}--> ${NC}"
+                read line
+            done
+        fi
+        server=$(echo "${serverlist}" | sed -n "${line}p" | awk '{ print $1 }')
+        eval $__resultvar="'$server'"
+    fi
+}
+
 
 # Main Function
 main() {
@@ -178,28 +209,13 @@ main() {
     local vpn_provider
     vpn_provider=$(_lowercase "${ARG_PROVIDER}")
 
-    raw_serverlist=$(jq -r -c ."${vpn_provider}" "${OPENVPN_SERVERS}")
-    if [[ -z "${raw_serverlist}" ]] || [[ "${raw_serverlist}" == "null" ]]; then
+    local vpn_server
+    _get_server "vpn_server" "${vpn_provider}"
+
+    if [[ -z "${vpn_server}" ]]; then
         echo "VPN Provider not supported !!!"
         exit 1
     fi
-    # Select VPN server from the list for given provider
-    serverlist=$(echo "${raw_serverlist}" | jq -r -c .[])
-    count=$(echo "${serverlist}" |wc -l)
-    option_list=$(echo "${serverlist}" | grep -n . | sed 's/:/:-->  /g' | column -t -s ':')
-    echo -e "${RED}SELECT THE SERVER FROM THE LIST :${NC}"
-    echo
-    echo "${option_list}" | sed "s/^\(.*-->  \)\(.*\)\$/${YELLOW_ALT}\1${NC_ALT}${GREEN_ALT}\2${NC_ALT}/g"
-    # if 1 option select that else prompt
-    if [[ ${count} -eq 1 ]]; then
-        line=1
-    else
-        until [[ $line =~ [0-9]+ ]]; do
-            echo -e -n "${RED}--> ${NC}"
-            read line
-        done
-    fi
-    vpn_server=$(echo "${serverlist}" | sed -n "${line}p" | awk '{ print $1 }')
 
     # Build the docker image
     docker build --no-cache -t "${IMAGE_TAG}-${image_os}" -f "Dockerfile.${image_os}" app
