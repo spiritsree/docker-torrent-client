@@ -47,6 +47,6 @@ fi
 
 json_key_name=$(_lowercase "${VPN_PROVIDER}")
 
-jq -c --argjson servers $(cat "${SERVER_FILE}" | jq -r -c --slurp --raw-input 'split("\n")[:-1]') ".${json_key_name} = \$servers" "${VPN_SERVER_FILE}" > "${TMP_FILE}"
+jq -c --argjson servers "$(jq -r -c --slurp --raw-input 'split("\n")[:-1]' "${SERVER_FILE}")" ".${json_key_name} = \$servers" "${VPN_SERVER_FILE}" > "${TMP_FILE}"
 
 mv "${TMP_FILE}" "${VPN_SERVER_FILE}"

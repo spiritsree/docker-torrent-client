@@ -67,6 +67,7 @@ Web UI can be accessed using browser extensions
 
 * [dockerize](https://github.com/jwilder/dockerize)
 * [dumb-init](https://github.com/Yelp/dumb-init)
+* [Firewall](https://help.ubuntu.com/lts/serverguide/firewall.html)
 * [openvpn](https://openvpn.net/community-resources/reference-manual-for-openvpn-2-4/)
 * [transmission](https://github.com/transmission/transmission)
 * [transmission config](https://github.com/transmission/transmission/wiki/Editing-Configuration-Files)

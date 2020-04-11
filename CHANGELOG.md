@@ -2,7 +2,9 @@
 
 ## Version 0.0.5
 
-
+* Run transmission as a less privilege user
+* Transmission RPC authentication enabled by default
+* Firewall rules for the traffic
 
 ## Version 0.0.4
 

@@ -10,7 +10,7 @@ Variable | Description | Default |
 `LOG_FILE` | The log file path | `/data/application.log` |
 `ENABLE_FILE_LOGGING` | `true` enables logging to file, `false` will use docker logs | `true` |
 `HEALTH_CHECK_HOST` | Docker health check host | `www.google.com` |
-`LOCAL_NETWORK` | Local network if you need access from local | |
+`LOCAL_NETWORK` | Local network if you need access from local (comma separated list) | |
 
 ## OpenVPN
 
@@ -65,11 +65,11 @@ Variable | Description | Default |
 `TRANSMISSION_PREFETCH_ENABLED` | When enabled, Transmission will hint to the OS which piece data it's about to read from disk in order to satisfy requests from peers | `true` |
 `TRANSMISSION_SCRAPE_PAUSED_TORRENTS_ENABLED` |  | `true` |
 `TRANSMISSION_SCRIPT_TORRENT_DONE_ENABLED` | Run a script at torrent completion | `false` |
-`TRANSMISSION_SCRIPT_TORRENT_DONE_FILENAME` | Path to script | `` |
+`TRANSMISSION_SCRIPT_TORRENT_DONE_FILENAME` | Path to script | |
 `TRANSMISSION_UTP_ENABLED` | Enable micro transport protocol | `true` |
 `TRANSMISSION_BIND_ADDRESS_IPV4` | Where to listen for peer connections (Will be updated with tunnel IP to avoid connection leak) | `0.0.0.0` |
 `TRANSMISSION_BIND_ADDRESS_IPV6` | Where to listen for peer connections | `::` |
-`TRANSMISSION_PEER_CONGESTION_ALGORITHM` | Peer congestion algorithm to use | `` |
+`TRANSMISSION_PEER_CONGESTION_ALGORITHM` | Peer congestion algorithm to use | |
 `TRANSMISSION_PEER_ID_TTL_HOURS` | Recycle the peer id used for public torrents after N hours of use | `6` |
 `TRANSMISSION_PEER_LIMIT_GLOBAL` | Global peer limit | `240` |
 `TRANSMISSION_PEER_LIMIT_PER_TORRENT` | Per torrent peer limit | `60` |
@@ -88,7 +88,7 @@ Variable | Description | Default |
 `TRANSMISSION_RPC_AUTHENTICATION_REQUIRED` | Is RPC authentication required | `true` |
 `TRANSMISSION_RPC_BIND_ADDRESS` | Where to listen for RPC connections | `0.0.0.0` |
 `TRANSMISSION_RPC_ENABLED` | Enable RPC | `true` |
-`TRANSMISSION_RPC_HOST_WHITELIST` | Host whitelist domains or IPs | `` |
+`TRANSMISSION_RPC_HOST_WHITELIST` | Host whitelist domains or IPs | |
 `TRANSMISSION_RPC_HOST_WHITELIST_ENABLED` | Enable host whitelisting | `true` |
 `TRANSMISSION_RPC_PASSWORD` | RPC password | `password` |
 `TRANSMISSION_RPC_PORT` | RPC port | `9091` |
@@ -107,3 +107,10 @@ Variable | Description | Default |
 `TRANSMISSION_HOME` | Home dir for transmission to store the state | `/data/transmission-home` |
 `TRANSMISSION_RUNAS_ROOT` | Run transmission as root user | `false` |
 
+## Firewall
+
+Environment variables used for firewall config.
+
+Variable | Description | Default |
+:--------|:------------|:--------|
+`FIREWALL_ENABLED` | Enables firewall | `false` |

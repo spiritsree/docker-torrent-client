@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # export the variables so that this process can access them
+# shellcheck disable=SC1091
 source /etc/transmission/env.sh
 
 # This scrip will be passed with multiple arguments
@@ -21,30 +22,28 @@ export TRANSMISSION_GID
 
 # Create the directories if not
 if [[ ! -d ${TRANSMISSION_HOME} ]]; then
-    mkdir -p ${TRANSMISSION_HOME}
+    mkdir -p "${TRANSMISSION_HOME}"
 fi
 if [[ ! -d ${TRANSMISSION_WATCH_DIR} ]]; then
-    mkdir -p ${TRANSMISSION_WATCH_DIR}
+    mkdir -p "${TRANSMISSION_WATCH_DIR}"
 fi
 if [[ ! -d ${TRANSMISSION_INCOMPLETE_DIR} ]]; then
-    mkdir -p ${TRANSMISSION_INCOMPLETE_DIR}
+    mkdir -p "${TRANSMISSION_INCOMPLETE_DIR}"
 fi
 if [[ ! -d ${TRANSMISSION_DOWNLOAD_DIR} ]]; then
-    mkdir -p ${TRANSMISSION_DOWNLOAD_DIR}
+    mkdir -p "${TRANSMISSION_DOWNLOAD_DIR}"
 fi
 
 # Changing ownership of directories
 echo "Changing ownership of dirs to ${TRANSMISSION_USER} with UID ${TRANSMISSION_UID}"
 chown -R ${TRANSMISSION_USER}:${TRANSMISSION_USER} \
-                              ${TRANSMISSION_HOME} \
-                              ${TRANSMISSION_WATCH_DIR} \
-                              ${TRANSMISSION_INCOMPLETE_DIR} \
-                              ${TRANSMISSION_DOWNLOAD_DIR}
+                              "${TRANSMISSION_WATCH_DIR}" \
+                              "${TRANSMISSION_INCOMPLETE_DIR}" \
+                              "${TRANSMISSION_DOWNLOAD_DIR}"
 
-chmod -R 775 ${TRANSMISSION_HOME} \
-             ${TRANSMISSION_WATCH_DIR} \
-             ${TRANSMISSION_INCOMPLETE_DIR} \
-             ${TRANSMISSION_DOWNLOAD_DIR}
+chmod -R 775 "${TRANSMISSION_WATCH_DIR}" \
+             "${TRANSMISSION_INCOMPLETE_DIR}" \
+             "${TRANSMISSION_DOWNLOAD_DIR}"
 
 # Start the transmission client after VPN is ready
 echo "Starting transmission client..."
@@ -65,7 +64,10 @@ export TRANSMISSION_BIND_ADDRESS_IPV4=${tun_ip}
 echo "Generating settings.json from env variables..."
 # Settings are from https://github.com/transmission/transmission/wiki/Editing-Configuration-Files
 # For details about the settings refer the url
-dockerize -template /etc/transmission/settings.tmpl:${TRANSMISSION_HOME}/settings.json
+dockerize -template "/etc/transmission/settings.tmpl:${TRANSMISSION_HOME}/settings.json"
+
+chown -R ${TRANSMISSION_USER}:${TRANSMISSION_USER} "${TRANSMISSION_HOME}"
+chmod -R 775 "${TRANSMISSION_HOME}"
 
 echo "Transmission will run as \"${TRANSMISSION_USER}\" with UID \"${TRANSMISSION_UID}\" and GID \"${TRANSMISSION_GID}\""
 exec su --preserve-environment ${TRANSMISSION_USER} -s /bin/bash -c "/usr/bin/transmission-daemon -g ${TRANSMISSION_HOME} --logfile ${LOG_FILE}" &
