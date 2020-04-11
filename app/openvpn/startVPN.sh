@@ -4,6 +4,7 @@
 
 # https://www.tldp.org/LDP/abs/html/abs-guide.html#CASEMODPARAMSUB
 VPN_PROVIDER="${OPENVPN_PROVIDER,,}"
+
 VPN_CONFIG="/etc/openvpn/${VPN_PROVIDER}"
 export VPN_CONFIG
 
@@ -28,7 +29,7 @@ fi
 
 echo "Using OpenVPN provider ${OPENVPN_PROVIDER}" >> ${LOG_FILE}
 
-# add OpenVPN user/pass
+# add OpenVPN user/pass to the auth-user-pass file
 if [[ "${OPENVPN_USERNAME}" == "NONE" ]] || [[ "${OPENVPN_PASSWORD}" == "NONE" ]] ; then
   if [[ ! -f /control/ovpn-auth.txt ]] ; then
     echo "OpenVPN username and password empty..." >> ${LOG_FILE}

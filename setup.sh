@@ -17,13 +17,14 @@ ARG_PASS=''
 ARG_OS='ubuntu'
 ARG_DIR="${LOCAL_DATA_DIR}"
 ARG_PROVIDER=''
+ARG_LOCAL='false'
 OPENVPN_SERVERS="${BASEDIR}/app/openvpn/vpn_servers.json"
 
 # Highlight the message
 _highlight_msg() {
     local msg="$*"
     if [[ -n "${msg}" ]]; then
-        echo -e "\n ${RED} ${msg} ${NC}"
+        echo -e "\n${RED}${msg} ${NC}"
         echo
     fi
 }
@@ -53,17 +54,18 @@ _usage() {
     echo 'Optional Arguments (O_ARGS):'
     echo '    -h|--help                     Print usage'
     echo '    -o|--os <ubuntu|alpine>       OS type, Default: ubuntu'
-    echo "    -d|--data-dir <local-dir>     Local dir to mount for data (This should be added in Docker File Sharing Default: ${LOCAL_DATA_DIR}"
+    echo "    -d|--data-dir <local-dir>     Local dir to mount for data (This should be added in Docker File Sharing Default: ${LOCAL_DATA_DIR})"
+    echo '    -l|--local                    Build docker image locally'
     echo
     echo 'Examples:'
     echo "    ${SCRIPT_NAME}"
-    echo "    ${SCRIPT_NAME} -u user -p password"
+    echo "    ${SCRIPT_NAME} -u user -p password -v HideMe"
     echo
 }
 
 # Get Options
 _getOptions() {
-    optspec=":hu:p:o:d:v:-:"
+    optspec=":hlu:p:o:d:v:-:"
     while getopts "$optspec" opt; do
         case $opt in
             -)
@@ -92,6 +94,9 @@ _getOptions() {
                         _usage
                         exit 0
                         ;;
+                    local)
+                        ARG_LOCAL="true"
+                        ;;
                     *)
                         if [[ "$OPTERR" = 1 ]] && [[ "${optspec:0:1}" != ":" ]]; then
                             _usage "Unknown option --${OPTARG}"
@@ -105,6 +110,9 @@ _getOptions() {
             h)
                 _usage
                 exit 0
+                ;;
+            l)
+                ARG_LOCAL="true"
                 ;;
             u)
                 ARG_USER="${OPTARG}"
@@ -217,9 +225,10 @@ main() {
         exit 1
     fi
 
-    # Build the docker image
-    docker build --no-cache -t "${IMAGE_TAG}-${image_os}" -f "Dockerfile.${image_os}" app
-
+    # Build the docker image if local
+    if [[ "${ARG_LOCAL}" == "true" ]]; then
+        docker build --no-cache -t "${IMAGE_TAG}-${image_os}" -f "Dockerfile.${image_os}" app
+    fi
     # Docker capability
     OPT='-d --cap-add=NET_ADMIN \\'
 
@@ -258,7 +267,11 @@ main() {
     OPT+='\n\t\t-p 9091:9091 \\'
 
     # Docker Image to run
-    OPT+='\n\t\t'${IMAGE_TAG}'-'${image_os}':latest \n'
+    if [[ "${ARG_LOCAL}" == "true" ]]; then
+        OPT+='\n\t\t'${IMAGE_TAG}'-'${image_os}':latest \n'
+    else
+        OPT+='\n\t\t<docker-image:tag> \n'
+    fi
 
     # Run this command to start the docker
     _highlight_msg "Execute this to start the docker"
