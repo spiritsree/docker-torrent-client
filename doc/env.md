@@ -85,7 +85,7 @@ Variable | Description | Default |
 `TRANSMISSION_QUEUE_STALLED_MINUTES` | Queue stalled in minutes | `30` |
 `TRANSMISSION_SEED_QUEUE_ENABLED` | When true. Transmission will only seed seed-queue-size non-stalled torrents at once | `false` |
 `TRANSMISSION_SEED_QUEUE_SIZE` | Seed queue size | `10` |
-`TRANSMISSION_RPC_AUTHENTICATION_REQUIRED` | Is RPC authentication required | `false` |
+`TRANSMISSION_RPC_AUTHENTICATION_REQUIRED` | Is RPC authentication required | `true` |
 `TRANSMISSION_RPC_BIND_ADDRESS` | Where to listen for RPC connections | `0.0.0.0` |
 `TRANSMISSION_RPC_ENABLED` | Enable RPC | `true` |
 `TRANSMISSION_RPC_HOST_WHITELIST` | Host whitelist domains or IPs | `` |
@@ -105,4 +105,5 @@ Variable | Description | Default |
 `TRANSMISSION_RATIO_LIMIT` | Ratio limit default 2.0 | `2` |
 `TRANSMISSION_RATIO_LIMIT_ENABLED` | Enable ratio limit | `false` |
 `TRANSMISSION_HOME` | Home dir for transmission to store the state | `/data/transmission-home` |
+`TRANSMISSION_RUNAS_ROOT` | Run transmission as root user | `false` |
 

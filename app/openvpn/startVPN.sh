@@ -9,7 +9,10 @@ VPN_CONFIG="/etc/openvpn/${VPN_PROVIDER}"
 export VPN_CONFIG
 
 if [[ "${ENABLE_FILE_LOGGING}" == "false" ]]; then
-    export LOG_FILE="/proc/self/fd/1"
+  export LOG_FILE="/proc/self/fd/1"
+else
+  touch "${LOG_FILE}"
+  chmod 666 "${LOG_FILE}"
 fi
 
 if [[ "${CREATE_TUN_DEVICE:-false}" == "true" ]]; then
