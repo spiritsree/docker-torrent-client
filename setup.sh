@@ -157,7 +157,7 @@ _get_server() {
     raw_serverlist=$(jq -r -c ."${vpn_provider}" "${OPENVPN_SERVERS}")
     if [[ -z "${raw_serverlist}" ]] || [[ "${raw_serverlist}" == "null" ]]; then
         server=""
-        eval $__resultvar="'$server'"
+        eval "${__resultvar}='$server'"
     else
         # Select VPN server from the list for given provider
         serverlist=$(echo "${raw_serverlist}" | jq -r -c .[])
@@ -165,6 +165,7 @@ _get_server() {
         option_list=$(echo "${serverlist}" | grep -n . | sed 's/:/:-->  /g' | column -t -s ':')
         echo -e "${RED}SELECT THE SERVER FROM THE LIST :${NC}"
         echo
+        # shellcheck disable=SC2001
         echo "${option_list}" | sed "s/^\(.*-->  \)\(.*\)\$/${YELLOW_ALT}\1${NC_ALT}${GREEN_ALT}\2${NC_ALT}/g"
         # if 1 option select that else prompt
         if [[ ${count} -eq 1 ]]; then
@@ -172,11 +173,11 @@ _get_server() {
         else
             until [[ $line =~ [0-9]+ ]]; do
                 echo -e -n "${RED}--> ${NC}"
-                read line
+                read -r line
             done
         fi
         server=$(echo "${serverlist}" | sed -n "${line}p" | awk '{ print $1 }')
-        eval $__resultvar="'$server'"
+        eval "${__resultvar}='$server'"
     fi
 }
 
@@ -230,7 +231,7 @@ main() {
         docker build --no-cache -t "${IMAGE_TAG}-${image_os}" -f "Dockerfile.${image_os}" app
     fi
     # Docker capability
-    OPT='-d --cap-add=NET_ADMIN \\'
+    OPT="-d --cap-add=NET_ADMIN \\ "
 
     # Check if Docker IPv6 is enabled
     local ipv6_enabled
@@ -238,7 +239,7 @@ main() {
 
     # Disable IPv6 if Docker doesn't support it
     if [[ "${ipv6_enabled}" == "false" ]]; then
-        OPT+='\n\t\t--sysctl net.ipv6.conf.all.disable_ipv6=0 \\'
+        OPT+="\n\t\t--sysctl net.ipv6.conf.all.disable_ipv6=0 \\ "
     fi
 
     # Get local IP
@@ -246,36 +247,37 @@ main() {
     local_ip=$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p')
 
     # DNS IPs
-    OPT+='\n\t\t--dns 8.8.8.8 \\'
-    OPT+='\n\t\t--dns 8.8.4.4 \\'
+    OPT+="\n\t\t--dns 8.8.8.8 \\ "
+    OPT+="\n\t\t--dns 8.8.4.4 \\ "
 
     # Volume mount for Data
-    OPT+='\n\t\t-v '${ARG_DIR}':/data \\'
+    OPT+="\n\t\t-v ${ARG_DIR}:/data \\ "
 
     # OpenVPN Provider
-    OPT+='\n\t\t-e OPENVPN_PROVIDER='\'${ARG_PROVIDER}\'' \\'
-    OPT+='\n\t\t-e OPENVPN_HOSTNAME='\'${vpn_server}\'' \\'
+    OPT+="\n\t\t-e OPENVPN_PROVIDER='${ARG_PROVIDER}' \\ "
+    OPT+="\n\t\t-e OPENVPN_HOSTNAME='${vpn_server}' \\ "
 
     # OpenVPN username and password
-    OPT+='\n\t\t-e OPENVPN_USERNAME='\'${ARG_USER}\'' \\'
-    OPT+='\n\t\t-e OPENVPN_PASSWORD='\'${ARG_PASS}\'' \\'
+    OPT+="\n\t\t-e OPENVPN_USERNAME='${ARG_USER}' \\ "
+    OPT+="\n\t\t-e OPENVPN_PASSWORD='${ARG_PASS}' \\ "
 
     # Local network
-    OPT+='\n\t\t-e LOCAL_NETWORK='\'${local_ip}/32\'' \\'
+    OPT+="\n\t\t-e LOCAL_NETWORK='${local_ip}/32' \\ "
 
     # Port
-    OPT+='\n\t\t-p 9091:9091 \\'
+    OPT+="\n\t\t-p 9091:9091 \\ "
 
     # Docker Image to run
     if [[ "${ARG_LOCAL}" == "true" ]]; then
-        OPT+='\n\t\t'${IMAGE_TAG}'-'${image_os}':latest \n'
+        OPT+="\n\t\t${IMAGE_TAG}-${image_os}:latest \n"
     else
-        OPT+='\n\t\t<docker-image:tag> \n'
+        OPT+="\n\t\t<docker-image:tag> \n"
     fi
 
     # Run this command to start the docker
     _highlight_msg "Execute this to start the docker"
-    echo -e "docker run ${OPT}"
+    OPT="$(echo -e "${OPT}" | expand -t 7)"
+    echo "docker run ${OPT}" | sed 's/ $//g'
 }
 
 main "$@"
