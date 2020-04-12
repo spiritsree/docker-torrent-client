@@ -34,10 +34,12 @@ Optional Arguments (O_ARGS):
     -o|--os <ubuntu|alpine>       OS type, Default: ubuntu
     -d|--data-dir <local-dir>     Local dir to mount for data (This should be added in Docker File Sharing Default: ~/Downloads/uTorrent/data/)
     -l|--local                    Build docker image locally
+    --proto <UDP|TCP>             VPN connection proto UDP or TCP
 
 Examples:
-    setup.sh
+    setup.sh -h
     setup.sh -u user -p password -v HideMe
+    setup.sh -u user -p password -v FastestVPN --proto tcp
 ```
 
 ## Accessing the UI
@@ -62,6 +64,8 @@ Web UI can be accessed using browser extensions
 
 * [Usage](./doc/usage.md)
 * [Environment Variables](./doc/env.md)
+* [Docker Options](./doc/docker.md)
+* [Debugging](./doc/debug.md)
 
 ## Reference
 

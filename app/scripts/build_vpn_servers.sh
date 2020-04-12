@@ -5,6 +5,7 @@
 
 SERVER_FILE=$1
 VPN_PROVIDER=$2
+PROTO=${3:-UDP}
 SCRIPT_NAME="$( basename "${BASH_SOURCE[0]}" )"
 BASEDIR=$(dirname "$0")
 VPN_SERVER_FILE="${BASEDIR}/../openvpn/vpn_servers.json"
@@ -16,7 +17,7 @@ NC='\033[0m'          # Color Reset
 _usage() {
     echo
     echo 'Usage:'
-    echo "    ${SCRIPT_NAME} <FILE_PATH> <VPN_PROVIDER>"
+    echo "    ${SCRIPT_NAME} <SERVER_LIST_FILE> <VPN_PROVIDER> <UDP|TCP>"
     echo
 }
 
@@ -47,6 +48,11 @@ fi
 
 json_key_name=$(_lowercase "${VPN_PROVIDER}")
 
-jq -c --argjson servers "$(jq -r -c --slurp --raw-input 'split("\n")[:-1]' "${SERVER_FILE}")" ".${json_key_name} = \$servers" "${VPN_SERVER_FILE}" > "${TMP_FILE}"
+if [[ -z "${PROTO-}" ]]; then
+    jq -c --argjson servers "$(jq -r -c --slurp --raw-input 'split("\n")[:-1]' "${SERVER_FILE}")" ".${json_key_name} = \$servers" "${VPN_SERVER_FILE}" > "${TMP_FILE}"
+else
+    vpn_proto=$(_lowercase "${PROTO}")
+    jq -c --argjson servers "$(jq -r -c --slurp --raw-input 'split("\n")[:-1]' "${SERVER_FILE}")" ".${json_key_name}.${vpn_proto} = \$servers" "${VPN_SERVER_FILE}" > "${TMP_FILE}"
+fi
 
 mv "${TMP_FILE}" "${VPN_SERVER_FILE}"

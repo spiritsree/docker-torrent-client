@@ -20,6 +20,8 @@ Variable | Description | Default |
 `OPENVPN_USERNAME` | VPN Provider username | |
 `OPENVPN_PASSWORD` | VPN Provider password | |
 `OPENVPN_HOSTNAME` | VPN Provider server to connect | |
+`OPENVPN_CONNECTION` | VPN Provider server and protocol combination | |
+`OPENVPN_PROTO` | VPN Provider Protocol | `udp` |
 `OPENVPN_OPTS` | Custom options to pass to openvpn client | |
 
 `OPENVPN_OPTS` can be used to pass any custom options to the openvpn client. For OpenVPN client options you can refer [here](https://openvpn.net/community-resources/reference-manual-for-openvpn/)
@@ -28,6 +30,10 @@ Default options passed to OpenVPN are:
 
 * `--script-security 2` - Allow calling of built-in executables and user-defined scripts.
 * `--up-delay` - Delay TUN/TAP open and possible –up script execution until after TCP/UDP connection establishment with peer.
+
+With `OPENVPN_HOSTNAME` as an option you need to pass `OPENVPN_PROTO` as well if the conenction is not UDP. Otherwise `OPENVPN_CONNECTION` will replace previous both envs.
+
+`OPENVPN_CONNECTION` will have the format of `<server-name>:<proto>`.
 
 ## Transmission
 

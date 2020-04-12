@@ -1,5 +1,13 @@
 # shellcheck shell=bash
 
+# Convert to lower case
+_lowercase() {
+    local in=$1
+    local out=''
+    out=$(echo "${in}" | tr '[:upper:]' '[:lower:]')
+    echo "${out}"
+}
+
 # Function to allow port/IP in firewall
 _firewall_allow_port() {
     local port
@@ -9,10 +17,10 @@ _firewall_allow_port() {
 
     if [[ -n "${port-}" ]]; then
         if [[ -n "${source_ip-}" ]]; then
-            echo "Allowing IP ${source_ip} to port ${port} in firewall..."
+            echo "[FIREWALL] Allowing IP ${source_ip} to port ${port} in firewall..."
             ufw allow from "${source_ip}" to any port "${port}"
         else
-            echo "Allowing port ${port} in firewall..."
+            echo "[FIREWALL] Allowing port ${port} in firewall..."
             ufw allow "${port}"
         fi
     fi

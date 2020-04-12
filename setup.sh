@@ -18,6 +18,7 @@ ARG_OS='ubuntu'
 ARG_DIR="${LOCAL_DATA_DIR}"
 ARG_PROVIDER=''
 ARG_LOCAL='false'
+ARG_PROTO='UDP'
 OPENVPN_SERVERS="${BASEDIR}/app/openvpn/vpn_servers.json"
 
 # Highlight the message
@@ -56,10 +57,12 @@ _usage() {
     echo '    -o|--os <ubuntu|alpine>       OS type, Default: ubuntu'
     echo "    -d|--data-dir <local-dir>     Local dir to mount for data (This should be added in Docker File Sharing Default: ${LOCAL_DATA_DIR})"
     echo '    -l|--local                    Build docker image locally'
+    echo '    --proto <UDP|TCP>             VPN connection proto UDP or TCP'
     echo
     echo 'Examples:'
-    echo "    ${SCRIPT_NAME}"
+    echo "    ${SCRIPT_NAME}" -v
     echo "    ${SCRIPT_NAME} -u user -p password -v HideMe"
+    echo "    ${SCRIPT_NAME} -u user -p password -v FastestVPN --proto tcp"
     echo
 }
 
@@ -89,6 +92,10 @@ _getOptions() {
                     data-dir)
                         ARG_DIR="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
                         [[ ${ARG_DIR} =~ ^-.* || "${ARG_DIR}" = "" ]] && { _usage "Option --data-dir requires an agument"; exit 1; }
+                        ;;
+                    proto)
+                        ARG_PROTO="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
+                        [[ ${ARG_PROTO} =~ ^-.* || "${ARG_DIR}" = "" ]] && { _usage "Option --proto requires an agument"; exit 1; }
                         ;;
                     help)
                         _usage
@@ -153,8 +160,9 @@ _lowercase() {
 _get_server() {
     local  __resultvar=$1
     local vpn_provider=$2
+    local vpn_proto=$3
 
-    raw_serverlist=$(jq -r -c ."${vpn_provider}" "${OPENVPN_SERVERS}")
+    raw_serverlist=$(jq -r -c ."${vpn_provider}"."${vpn_proto}" "${OPENVPN_SERVERS}")
     if [[ -z "${raw_serverlist}" ]] || [[ "${raw_serverlist}" == "null" ]]; then
         server=""
         eval "${__resultvar}='$server'"
@@ -199,6 +207,13 @@ main() {
 
     local image_os
     image_os=$(_lowercase "${ARG_OS}")
+    local vpn_proto
+    vpn_proto=$(_lowercase "${ARG_PROTO}")
+
+    if ! [[ "${vpn_proto}" == "udp" || "${vpn_proto}" == "tcp" ]]; then
+        _usage "--proto only UDP or TCP are valid values !!!"
+        exit 1
+    fi
 
     if ! [[ "${image_os}" == "ubuntu" ||  "${image_os}" == "alpine" ]]; then
         _usage "Choose os from ubuntu or alpine"
@@ -219,7 +234,7 @@ main() {
     vpn_provider=$(_lowercase "${ARG_PROVIDER}")
 
     local vpn_server
-    _get_server "vpn_server" "${vpn_provider}"
+    _get_server "vpn_server" "${vpn_provider}" "${vpn_proto}"
 
     if [[ -z "${vpn_server}" ]]; then
         echo "VPN Provider not supported !!!"
@@ -255,7 +270,7 @@ main() {
 
     # OpenVPN Provider
     OPT+="\n\t\t-e OPENVPN_PROVIDER='${ARG_PROVIDER}' \\ "
-    OPT+="\n\t\t-e OPENVPN_HOSTNAME='${vpn_server}' \\ "
+    OPT+="\n\t\t-e OPENVPN_CONNECTION='${vpn_server}:${vpn_proto}' \\ "
 
     # OpenVPN username and password
     OPT+="\n\t\t-e OPENVPN_USERNAME='${ARG_USER}' \\ "
