@@ -65,8 +65,17 @@ if [[ "${OPENVPN_HOSTNAME}" == "None" ]] || [[ -z "${OPENVPN_HOSTNAME}" ]]; then
     fi
 fi
 
+vpn_config_template="${VPN_CONFIG}/${OPENVPN_PROTO}/default.ovpn.tmpl"
+
 # Expand the OpenVPN Config
-dockerize -template "${VPN_CONFIG}/${OPENVPN_PROTO}/default.ovpn.tmpl:${VPN_CONFIG}/default.ovpn"
+if [[ -f "${vpn_config_template}" ]]; then
+    echo "[OPENVPN] Expanding template ${vpn_config_template}..." >> ${LOG_FILE}
+    dockerize -template "${vpn_config_template}:${VPN_CONFIG}/default.ovpn"
+else
+    echo "[OPENVPN] Template ${vpn_config_template} not found..." >> ${LOG_FILE}
+    echo "[OPENVPN] Protocol may not be supported..." >> ${LOG_FILE}
+    exit 1
+fi
 
 # Transmission control options
 TRANSMISSION_CONTROL_OPTS="--script-security 2 --up-delay --up /etc/openvpn/startTorrent.sh --down /etc/openvpn/stopTorrent.sh"

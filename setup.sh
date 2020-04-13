@@ -237,7 +237,7 @@ main() {
     _get_server "vpn_server" "${vpn_provider}" "${vpn_proto}"
 
     if [[ -z "${vpn_server}" ]]; then
-        echo "VPN Provider not supported !!!"
+        echo "VPN Provider or protocol not supported !!!"
         exit 1
     fi
 
