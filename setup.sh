@@ -156,6 +156,65 @@ _lowercase() {
     echo "${out}"
 }
 
+# Convert hex netmask to dotted decimal netmask
+_hex_to_dec_netmask() {
+    local netmask_hex=$1
+    local netmask_dec
+    netmask_dec=$(echo "${netmask_hex}" | \
+        sed 's/0x// ; s/../& /g' | \
+        tr '[:lower:]' '[:upper:]' | \
+        while read -r B1 B2 B3 B4 ; do
+            echo "ibase=16;$B1;$B2;$B3;$B4" | \
+            bc | \
+            tr '\n' . | \
+            sed 's/\.$//'
+        done)
+    echo "${netmask_dec}"
+}
+
+# Get network bits from hex netmask
+_hex_to_bits_netmask() {
+    local netmask_hex=$1
+    local netmask_bits
+    netmask_bits=$(echo "${netmask_hex}" | \
+        sed 's/0x// ; s/../& /g' | \
+        tr '[:lower:]' '[:upper:]' | \
+        while read -r B1 B2 B3 B4 ; do
+            echo "ibase=16;obase=2;$B1$B2$B3$B4" | \
+            bc | \
+            tr -d -c 1 | \
+            wc -c | \
+            awk '{print $1 }'
+        done)
+    echo "${netmask_bits}"
+}
+
+# Get network from IP and netmask in hex
+_get_network() {
+    local ip_address=$1
+    local netmask_hex=$2
+    local a b c d addr mask net_bits net_digit net_id
+    net_bits=$(_hex_to_bits_netmask "${netmask_hex}")
+    { IFS=. read -r a b c d; } <<< "${ip_address}"
+    addr=$(((((((a << 8) | b) << 8) | c) << 8) | d))
+    mask=$((0xffffffff << (32 -net_bits)))
+    net_digit=$((addr & mask))
+    for ((n=0; n<4; n++)); do
+        net_id=$((net_digit & 0xff))${net_id:+.}$net_id
+        net_digit=$((net_digit >> 8))
+    done
+    echo "${net_id}/${net_bits}"
+}
+
+_get_local_network() {
+    local ip_string ip netmask network
+    ip_string=$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*.*)/\2/p')
+    ip=$(echo "${ip_string}" | awk '{ print $1 }')
+    netmask=$(echo "${ip_string}" | awk '{ print $3 }')
+    network=$(_get_network "${ip}" "${netmask}")
+    echo "${network}"
+}
+
 # Get VPN Server from displayed list
 _get_server() {
     local  __resultvar=$1
@@ -193,6 +252,7 @@ _get_server() {
 # Main Function
 main() {
     _getOptions "$@"
+    local image_os vpn_proto vpn_provider ipv6_enabled vpn_server local_net
 
     if [[ -z "${ARG_USER}" ]]; then
         _usage "Username required !!!"
@@ -205,9 +265,7 @@ main() {
         exit 1
     fi
 
-    local image_os
     image_os=$(_lowercase "${ARG_OS}")
-    local vpn_proto
     vpn_proto=$(_lowercase "${ARG_PROTO}")
 
     if ! [[ "${vpn_proto}" == "udp" || "${vpn_proto}" == "tcp" ]]; then
@@ -230,10 +288,8 @@ main() {
         exit 1
     fi
 
-    local vpn_provider
     vpn_provider=$(_lowercase "${ARG_PROVIDER}")
 
-    local vpn_server
     _get_server "vpn_server" "${vpn_provider}" "${vpn_proto}"
 
     if [[ -z "${vpn_server}" ]]; then
@@ -249,7 +305,6 @@ main() {
     OPT="-d --cap-add=NET_ADMIN \\ "
 
     # Check if Docker IPv6 is enabled
-    local ipv6_enabled
     ipv6_enabled=$(docker network ls --filter Driver="bridge"  --format "{{.IPv6}}")
 
     # Disable IPv6 if Docker doesn't support it
@@ -257,9 +312,8 @@ main() {
         OPT+="\n\t\t--sysctl net.ipv6.conf.all.disable_ipv6=0 \\ "
     fi
 
-    # Get local IP
-    local local_ip
-    local_ip=$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p')
+    # Get local network
+    local_net=$(_get_local_network)
 
     # DNS IPs
     OPT+="\n\t\t--dns 8.8.8.8 \\ "
@@ -277,7 +331,7 @@ main() {
     OPT+="\n\t\t-e OPENVPN_PASSWORD='${ARG_PASS}' \\ "
 
     # Local network
-    OPT+="\n\t\t-e LOCAL_NETWORK='${local_ip}/32' \\ "
+    OPT+="\n\t\t-e LOCAL_NETWORK='${local_net}' \\ "
 
     # Port
     OPT+="\n\t\t-p 9091:9091 \\ "
