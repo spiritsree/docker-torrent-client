@@ -8,14 +8,15 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update > /dev/null \
     && apt-get -y upgrade > /dev/null \
     && apt-get -y install --no-install-recommends software-properties-common git curl jq unzip > /dev/null \
-    && apt-get -y install --no-install-recommends iputils-ping > /dev/null \
+    && apt-get -y install --no-install-recommends iputils-ping ufw > /dev/null \
     && apt-get -y install --no-install-recommends dumb-init > /dev/null \
     && add-apt-repository ppa:transmissionbt/ppa > /dev/null \
     && apt-get update > /dev/null \
     && apt-get -y install --no-install-recommends transmission-cli transmission-common transmission-daemon > /dev/null \
     && apt-get -y install --no-install-recommends openvpn > /dev/null \
     && bash /scripts/install-app.sh \
-    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && useradd -u 1999 -U -s $(which nologin) jedi
 
 ADD ./openvpn/ /etc/openvpn/
 ADD ./transmission/ /etc/transmission/
@@ -25,6 +26,8 @@ ENV CREATE_TUN_DEVICE="true" \
     OPENVPN_PASSWORD="NONE" \
     OPENVPN_PROVIDER="None" \
     OPENVPN_HOSTNAME="None" \
+    OPENVPN_CONNECTION="None" \
+    OPENVPN_PROTO=udp \
     TRANSMISSION_ALT_SPEED_ENABLED=false \
     TRANSMISSION_ALT_SPEED_UP=50 \
     TRANSMISSION_ALT_SPEED_DOWN=50 \
@@ -75,7 +78,7 @@ ENV CREATE_TUN_DEVICE="true" \
     TRANSMISSION_QUEUE_STALLED_MINUTES=30 \
     TRANSMISSION_SEED_QUEUE_ENABLED=false \
     TRANSMISSION_SEED_QUEUE_SIZE=10 \
-    TRANSMISSION_RPC_AUTHENTICATION_REQUIRED=false \
+    TRANSMISSION_RPC_AUTHENTICATION_REQUIRED=true \
     TRANSMISSION_RPC_BIND_ADDRESS=0.0.0.0 \
     TRANSMISSION_RPC_ENABLED=true \
     TRANSMISSION_RPC_HOST_WHITELIST= \
@@ -95,9 +98,11 @@ ENV CREATE_TUN_DEVICE="true" \
     TRANSMISSION_RATIO_LIMIT=2 \
     TRANSMISSION_RATIO_LIMIT_ENABLED=false \
     TRANSMISSION_HOME=/data/transmission-home \
+    TRANSMISSION_RUNAS_ROOT=false \
     LOG_FILE=/data/application.log \
     ENABLE_FILE_LOGGING=true \
-    HEALTH_CHECK_HOST=www.google.com
+    HEALTH_CHECK_HOST=www.google.com \
+    FIREWALL_ENABLED=false
 
 VOLUME /data
 VOLUME /control

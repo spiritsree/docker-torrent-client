@@ -2,14 +2,16 @@ FROM alpine:3.11
 
 ADD ./scripts /scripts
 
-RUN apk update --no-cache > /dev/null \
-    && apk add --no-cache bash git curl jq > /dev/null \
+RUN echo @testing http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories \
+    && apk update --no-cache > /dev/null \
+    && apk add --no-cache bash git curl jq shadow > /dev/null \
     && apk add --no-cache dumb-init > /dev/null \
     && apk add --no-cache transmission-daemon transmission-cli > /dev/null \
     && apk add --no-cache openvpn > /dev/null \
-    && apk add --no-cache ip6tables > /dev/null \
+    && apk add --no-cache ip6tables ufw@testing > /dev/null \
     && bash /scripts/install-app.sh \
-    && rm -rf /tmp/* /var/tmp/*
+    && rm -rf /tmp/* /var/tmp/* \
+    && useradd -u 1999 -U -s $(which nologin) jedi
 
 ADD ./openvpn/ /etc/openvpn/
 ADD ./transmission/ /etc/transmission/
@@ -19,6 +21,8 @@ ENV CREATE_TUN_DEVICE="true" \
     OPENVPN_PASSWORD="NONE" \
     OPENVPN_PROVIDER="None" \
     OPENVPN_HOSTNAME="None" \
+    OPENVPN_CONNECTION="None" \
+    OPENVPN_PROTO=udp \
     TRANSMISSION_ALT_SPEED_ENABLED=false \
     TRANSMISSION_ALT_SPEED_UP=50 \
     TRANSMISSION_ALT_SPEED_DOWN=50 \
@@ -69,7 +73,7 @@ ENV CREATE_TUN_DEVICE="true" \
     TRANSMISSION_QUEUE_STALLED_MINUTES=30 \
     TRANSMISSION_SEED_QUEUE_ENABLED=false \
     TRANSMISSION_SEED_QUEUE_SIZE=10 \
-    TRANSMISSION_RPC_AUTHENTICATION_REQUIRED=false \
+    TRANSMISSION_RPC_AUTHENTICATION_REQUIRED=true \
     TRANSMISSION_RPC_BIND_ADDRESS=0.0.0.0 \
     TRANSMISSION_RPC_ENABLED=true \
     TRANSMISSION_RPC_HOST_WHITELIST= \
@@ -89,9 +93,11 @@ ENV CREATE_TUN_DEVICE="true" \
     TRANSMISSION_RATIO_LIMIT=2 \
     TRANSMISSION_RATIO_LIMIT_ENABLED=false \
     TRANSMISSION_HOME=/data/transmission-home \
+    TRANSMISSION_RUNAS_ROOT=false \
     LOG_FILE=/data/application.log \
     ENABLE_FILE_LOGGING=true \
-    HEALTH_CHECK_HOST=www.google.com
+    HEALTH_CHECK_HOST=www.google.com \
+    FIREWALL_ENABLED=false
 
 VOLUME /data
 VOLUME /control

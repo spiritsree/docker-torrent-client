@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.1.0
+
+* Run transmission as a less privileged user
+* Transmission RPC authentication enabled by default
+* Optional firewall for stricter rules
+* Protocol wise VPN config split to support providers with both TCP and UDP
+* Support FastestVPN VPN provider
+
 ## Version 0.0.4
 
 * Healthcheck for docker images

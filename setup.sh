@@ -17,13 +17,15 @@ ARG_PASS=''
 ARG_OS='ubuntu'
 ARG_DIR="${LOCAL_DATA_DIR}"
 ARG_PROVIDER=''
+ARG_LOCAL='false'
+ARG_PROTO='UDP'
 OPENVPN_SERVERS="${BASEDIR}/app/openvpn/vpn_servers.json"
 
 # Highlight the message
 _highlight_msg() {
     local msg="$*"
     if [[ -n "${msg}" ]]; then
-        echo -e "\n ${RED} ${msg} ${NC}"
+        echo -e "\n${RED}${msg} ${NC}"
         echo
     fi
 }
@@ -53,17 +55,20 @@ _usage() {
     echo 'Optional Arguments (O_ARGS):'
     echo '    -h|--help                     Print usage'
     echo '    -o|--os <ubuntu|alpine>       OS type, Default: ubuntu'
-    echo "    -d|--data-dir <local-dir>     Local dir to mount for data (This should be added in Docker File Sharing Default: ${LOCAL_DATA_DIR}"
+    echo "    -d|--data-dir <local-dir>     Local dir to mount for data (This should be added in Docker File Sharing Default: ${LOCAL_DATA_DIR})"
+    echo '    -l|--local                    Build docker image locally'
+    echo '    --proto <UDP|TCP>             VPN connection proto UDP or TCP'
     echo
     echo 'Examples:'
-    echo "    ${SCRIPT_NAME}"
-    echo "    ${SCRIPT_NAME} -u user -p password"
+    echo "    ${SCRIPT_NAME}" -v
+    echo "    ${SCRIPT_NAME} -u user -p password -v HideMe"
+    echo "    ${SCRIPT_NAME} -u user -p password -v FastestVPN --proto tcp"
     echo
 }
 
 # Get Options
 _getOptions() {
-    optspec=":hu:p:o:d:v:-:"
+    optspec=":hlu:p:o:d:v:-:"
     while getopts "$optspec" opt; do
         case $opt in
             -)
@@ -88,9 +93,16 @@ _getOptions() {
                         ARG_DIR="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
                         [[ ${ARG_DIR} =~ ^-.* || "${ARG_DIR}" = "" ]] && { _usage "Option --data-dir requires an agument"; exit 1; }
                         ;;
+                    proto)
+                        ARG_PROTO="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
+                        [[ ${ARG_PROTO} =~ ^-.* || "${ARG_DIR}" = "" ]] && { _usage "Option --proto requires an agument"; exit 1; }
+                        ;;
                     help)
                         _usage
                         exit 0
+                        ;;
+                    local)
+                        ARG_LOCAL="true"
                         ;;
                     *)
                         if [[ "$OPTERR" = 1 ]] && [[ "${optspec:0:1}" != ":" ]]; then
@@ -105,6 +117,9 @@ _getOptions() {
             h)
                 _usage
                 exit 0
+                ;;
+            l)
+                ARG_LOCAL="true"
                 ;;
             u)
                 ARG_USER="${OPTARG}"
@@ -141,10 +156,103 @@ _lowercase() {
     echo "${out}"
 }
 
+# Convert hex netmask to dotted decimal netmask
+_hex_to_dec_netmask() {
+    local netmask_hex=$1
+    local netmask_dec
+    netmask_dec=$(echo "${netmask_hex}" | \
+        sed 's/0x// ; s/../& /g' | \
+        tr '[:lower:]' '[:upper:]' | \
+        while read -r B1 B2 B3 B4 ; do
+            echo "ibase=16;$B1;$B2;$B3;$B4" | \
+            bc | \
+            tr '\n' . | \
+            sed 's/\.$//'
+        done)
+    echo "${netmask_dec}"
+}
+
+# Get network bits from hex netmask
+_hex_to_bits_netmask() {
+    local netmask_hex=$1
+    local netmask_bits
+    netmask_bits=$(echo "${netmask_hex}" | \
+        sed 's/0x// ; s/../& /g' | \
+        tr '[:lower:]' '[:upper:]' | \
+        while read -r B1 B2 B3 B4 ; do
+            echo "ibase=16;obase=2;$B1$B2$B3$B4" | \
+            bc | \
+            tr -d -c 1 | \
+            wc -c | \
+            awk '{print $1 }'
+        done)
+    echo "${netmask_bits}"
+}
+
+# Get network from IP and netmask in hex
+_get_network() {
+    local ip_address=$1
+    local netmask_hex=$2
+    local a b c d addr mask net_bits net_digit net_id
+    net_bits=$(_hex_to_bits_netmask "${netmask_hex}")
+    { IFS=. read -r a b c d; } <<< "${ip_address}"
+    addr=$(((((((a << 8) | b) << 8) | c) << 8) | d))
+    mask=$((0xffffffff << (32 -net_bits)))
+    net_digit=$((addr & mask))
+    for ((n=0; n<4; n++)); do
+        net_id=$((net_digit & 0xff))${net_id:+.}$net_id
+        net_digit=$((net_digit >> 8))
+    done
+    echo "${net_id}/${net_bits}"
+}
+
+_get_local_network() {
+    local ip_string ip netmask network
+    ip_string=$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*.*)/\2/p')
+    ip=$(echo "${ip_string}" | awk '{ print $1 }')
+    netmask=$(echo "${ip_string}" | awk '{ print $3 }')
+    network=$(_get_network "${ip}" "${netmask}")
+    echo "${network}"
+}
+
+# Get VPN Server from displayed list
+_get_server() {
+    local  __resultvar=$1
+    local vpn_provider=$2
+    local vpn_proto=$3
+
+    raw_serverlist=$(jq -r -c ."${vpn_provider}"."${vpn_proto}" "${OPENVPN_SERVERS}")
+    if [[ -z "${raw_serverlist}" ]] || [[ "${raw_serverlist}" == "null" ]]; then
+        server=""
+        eval "${__resultvar}='$server'"
+    else
+        # Select VPN server from the list for given provider
+        serverlist=$(echo "${raw_serverlist}" | jq -r -c .[])
+        count=$(echo "${serverlist}" |wc -l)
+        option_list=$(echo "${serverlist}" | grep -n . | sed 's/:/:-->  /g' | column -t -s ':')
+        echo -e "${RED}SELECT THE SERVER FROM THE LIST :${NC}"
+        echo
+        # shellcheck disable=SC2001
+        echo "${option_list}" | sed "s/^\(.*-->  \)\(.*\)\$/${YELLOW_ALT}\1${NC_ALT}${GREEN_ALT}\2${NC_ALT}/g"
+        # if 1 option select that else prompt
+        if [[ ${count} -eq 1 ]]; then
+            line=1
+        else
+            until [[ $line =~ [0-9]+ ]]; do
+                echo -e -n "${RED}--> ${NC}"
+                read -r line
+            done
+        fi
+        server=$(echo "${serverlist}" | sed -n "${line}p" | awk '{ print $1 }')
+        eval "${__resultvar}='$server'"
+    fi
+}
+
 
 # Main Function
 main() {
     _getOptions "$@"
+    local image_os vpn_proto vpn_provider ipv6_enabled vpn_server local_net
 
     if [[ -z "${ARG_USER}" ]]; then
         _usage "Username required !!!"
@@ -157,8 +265,13 @@ main() {
         exit 1
     fi
 
-    local image_os
     image_os=$(_lowercase "${ARG_OS}")
+    vpn_proto=$(_lowercase "${ARG_PROTO}")
+
+    if ! [[ "${vpn_proto}" == "udp" || "${vpn_proto}" == "tcp" ]]; then
+        _usage "--proto only UDP or TCP are valid values !!!"
+        exit 1
+    fi
 
     if ! [[ "${image_os}" == "ubuntu" ||  "${image_os}" == "alpine" ]]; then
         _usage "Choose os from ubuntu or alpine"
@@ -170,78 +283,70 @@ main() {
         exit 1
     fi
 
-    local vpn_provider
-    vpn_provider=$(_lowercase "${ARG_PROVIDER}")
-
-    raw_serverlist=$(jq -r -c ."${vpn_provider}" "${OPENVPN_SERVERS}")
-    if [[ -z "${raw_serverlist}" ]] || [[ "${raw_serverlist}" == "null" ]]; then
-        echo "VPN Provider not supported !!!"
+    if ! command -v jq > /dev/null; then
+        echo "Please install jq"
         exit 1
     fi
-    # Select VPN server from the list for given provider
-    serverlist=$(echo "${raw_serverlist}" | jq -r -c .[])
-    count=$(echo "${serverlist}" |wc -l)
-    option_list=$(echo "${serverlist}" | grep -n . | sed 's/:/:-->  /g' | column -t -s ':')
-    echo -e "${RED}SELECT THE SERVER FROM THE LIST :${NC}"
-    echo
-    echo "${option_list}" | sed "s/^\(.*-->  \)\(.*\)\$/${YELLOW_ALT}\1${NC_ALT}${GREEN_ALT}\2${NC_ALT}/g"
-    # if 1 option select that else prompt
-    if [[ ${count} -eq 1 ]]; then
-        line=1
-    else
-        until [[ $line =~ [0-9]+ ]]; do
-            echo -e -n "${RED}--> ${NC}"
-            read line
-        done
+
+    vpn_provider=$(_lowercase "${ARG_PROVIDER}")
+
+    _get_server "vpn_server" "${vpn_provider}" "${vpn_proto}"
+
+    if [[ -z "${vpn_server}" ]]; then
+        echo "VPN Provider or protocol not supported !!!"
+        exit 1
     fi
-    vpn_server=$(echo "${serverlist}" | sed -n "${line}p" | awk '{ print $1 }')
 
-    # Build the docker image
-    docker build --no-cache -t "${IMAGE_TAG}-${image_os}" -f "Dockerfile.${image_os}" app
-
+    # Build the docker image if local
+    if [[ "${ARG_LOCAL}" == "true" ]]; then
+        docker build --no-cache -t "${IMAGE_TAG}-${image_os}" -f "Dockerfile.${image_os}" app
+    fi
     # Docker capability
-    OPT='-d --cap-add=NET_ADMIN \\'
+    OPT="-d --cap-add=NET_ADMIN \\ "
 
     # Check if Docker IPv6 is enabled
-    local ipv6_enabled
     ipv6_enabled=$(docker network ls --filter Driver="bridge"  --format "{{.IPv6}}")
 
     # Disable IPv6 if Docker doesn't support it
     if [[ "${ipv6_enabled}" == "false" ]]; then
-        OPT+='\n\t\t--sysctl net.ipv6.conf.all.disable_ipv6=0 \\'
+        OPT+="\n\t\t--sysctl net.ipv6.conf.all.disable_ipv6=0 \\ "
     fi
 
-    # Get local IP
-    local local_ip
-    local_ip=$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p')
+    # Get local network
+    local_net=$(_get_local_network)
 
     # DNS IPs
-    OPT+='\n\t\t--dns 8.8.8.8 \\'
-    OPT+='\n\t\t--dns 8.8.4.4 \\'
+    OPT+="\n\t\t--dns 8.8.8.8 \\ "
+    OPT+="\n\t\t--dns 8.8.4.4 \\ "
 
     # Volume mount for Data
-    OPT+='\n\t\t-v '${ARG_DIR}':/data \\'
+    OPT+="\n\t\t-v ${ARG_DIR}:/data \\ "
 
     # OpenVPN Provider
-    OPT+='\n\t\t-e OPENVPN_PROVIDER='\'${ARG_PROVIDER}\'' \\'
-    OPT+='\n\t\t-e OPENVPN_HOSTNAME='\'${vpn_server}\'' \\'
+    OPT+="\n\t\t-e OPENVPN_PROVIDER='${ARG_PROVIDER}' \\ "
+    OPT+="\n\t\t-e OPENVPN_CONNECTION='${vpn_server}:${vpn_proto}' \\ "
 
     # OpenVPN username and password
-    OPT+='\n\t\t-e OPENVPN_USERNAME='\'${ARG_USER}\'' \\'
-    OPT+='\n\t\t-e OPENVPN_PASSWORD='\'${ARG_PASS}\'' \\'
+    OPT+="\n\t\t-e OPENVPN_USERNAME='${ARG_USER}' \\ "
+    OPT+="\n\t\t-e OPENVPN_PASSWORD='${ARG_PASS}' \\ "
 
     # Local network
-    OPT+='\n\t\t-e LOCAL_NETWORK='\'${local_ip}/32\'' \\'
+    OPT+="\n\t\t-e LOCAL_NETWORK='${local_net}' \\ "
 
     # Port
-    OPT+='\n\t\t-p 9091:9091 \\'
+    OPT+="\n\t\t-p 9091:9091 \\ "
 
     # Docker Image to run
-    OPT+='\n\t\t'${IMAGE_TAG}'-'${image_os}':latest \n'
+    if [[ "${ARG_LOCAL}" == "true" ]]; then
+        OPT+="\n\t\t${IMAGE_TAG}-${image_os}:latest \n"
+    else
+        OPT+="\n\t\t<docker-image:tag> \n"
+    fi
 
     # Run this command to start the docker
     _highlight_msg "Execute this to start the docker"
-    echo -e "docker run ${OPT}"
+    OPT="$(echo -e "${OPT}" | expand -t 7)"
+    echo "docker run ${OPT}" | sed 's/ $//g'
 }
 
 main "$@"
