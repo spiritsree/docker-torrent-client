@@ -112,6 +112,7 @@ Variable | Description | Default |
 `TRANSMISSION_RATIO_LIMIT_ENABLED` | Enable ratio limit | `false` |
 `TRANSMISSION_HOME` | Home dir for transmission to store the state | `/data/transmission-home` |
 `TRANSMISSION_RUNAS_ROOT` | Run transmission as root user | `false` |
+`TRANSMISSION_WEB_UI` | Custom web UI (`combustion` or `transmission-web-control`) | |
 
 ## Firewall
 

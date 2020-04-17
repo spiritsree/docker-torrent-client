@@ -4,6 +4,7 @@ ADD ./scripts /scripts
 
 RUN echo @testing http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories \
     && apk update --no-cache > /dev/null \
+    && apk add --no-cache --update tar > /dev/null \
     && apk add --no-cache bash git curl jq shadow > /dev/null \
     && apk add --no-cache dumb-init > /dev/null \
     && apk add --no-cache transmission-daemon transmission-cli > /dev/null \
@@ -94,6 +95,7 @@ ENV CREATE_TUN_DEVICE="true" \
     TRANSMISSION_RATIO_LIMIT_ENABLED=false \
     TRANSMISSION_HOME=/data/transmission-home \
     TRANSMISSION_RUNAS_ROOT=false \
+    TRANSMISSION_WEB_UI= \
     LOG_FILE=/data/application.log \
     ENABLE_FILE_LOGGING=true \
     HEALTH_CHECK_HOST=www.google.com \

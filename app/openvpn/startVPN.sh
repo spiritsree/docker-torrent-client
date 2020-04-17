@@ -92,11 +92,11 @@ _get_default_gw
 if [[ "${FIREWALL_ENABLED,,}" == "true" ]]; then
     echo "[FIREWALL] Enabling firewall..." >> ${LOG_FILE}
     sed -i 's/IPV6=yes/IPV6=no/' /etc/default/ufw
-    ufw enable
+    ufw enable > /dev/null
 
     # Allow transmission peer port
     echo "[FIREWALL] Allowing transmission peer port ${TRANSMISSION_ALLOW_PORT}..." >> ${LOG_FILE}
-    _firewall_allow_port "${TRANSMISSION_ALLOW_PORT}"
+    _firewall_allow_port "${TRANSMISSION_ALLOW_PORT}" >> ${LOG_FILE}
 
     # Allow transmission RPC port from gateway
     if [[ -n "${def_gateway-}" ]] && [[ "${TRANSMISSION_RPC_ENABLED}" == "true" ]]; then

@@ -37,6 +37,7 @@ echo "[TRANSMISSION] Received arguments...$*"
 tun_device=$1
 tun_ip=$4
 
+# Exit if there is no tunnel device
 if [[ "${tun_device}" = "" ]]; then
    echo "[TRANSMISSION] ERR: Tunnel IP could not be found !!!"
    kill -9 "${PPID}"
@@ -45,6 +46,20 @@ fi
 
 echo "[TRANSMISSION] Setting TRANSMISSION_BIND_ADDRESS_IPV4 to ${tun_device} device ip: ${tun_ip}"
 export TRANSMISSION_BIND_ADDRESS_IPV4=${tun_ip}
+
+# Transmission custom UI
+if [[ "$(_lowercase "${TRANSMISSION_WEB_UI}")" == "combustion" ]]; then
+    echo "[TRANSMISSION] Using Combustion as the Web UI"
+    export TRANSMISSION_WEB_UI="combustion"
+    export TRANSMISSION_WEB_HOME="/usr/share/transmission-ui/combustion"
+elif [[ "$(_lowercase "${TRANSMISSION_WEB_UI}")" == "transmission-web-control" ]]; then
+    echo "[TRANSMISSION] Using Transmission Web Control as the Web UI"
+    export TRANSMISSION_WEB_UI="transmission-web-control"
+    export TRANSMISSION_WEB_HOME="/usr/share/transmission-ui/transmission-web-control"
+else
+    export TRANSMISSION_WEB_UI="default"
+    export TRANSMISSION_WEB_HOME="/usr/share/transmission/web"
+fi
 
 echo "[TRANSMISSION] Generating settings.json from env variables..."
 # Settings are from https://github.com/transmission/transmission/wiki/Editing-Configuration-Files

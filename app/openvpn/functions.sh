@@ -18,10 +18,10 @@ _firewall_allow_port() {
     if [[ -n "${port-}" ]]; then
         if [[ -n "${source_ip-}" ]]; then
             echo "[FIREWALL] Allowing IP ${source_ip} to port ${port} in firewall..."
-            ufw allow from "${source_ip}" to any port "${port}"
+            ufw allow from "${source_ip}" to any port "${port}" > /dev/null
         else
             echo "[FIREWALL] Allowing port ${port} in firewall..."
-            ufw allow "${port}"
+            ufw allow "${port}" > /dev/null
         fi
     fi
 }

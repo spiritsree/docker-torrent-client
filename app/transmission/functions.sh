@@ -1,5 +1,16 @@
 # shellcheck shell=bash
 
+# Convert to lower case
+# Syntax: _lowercase <text>
+_lowercase() {
+    local in=$1
+    local out=''
+    out=$(echo "${in}" | tr '[:upper:]' '[:lower:]')
+    echo "${out}"
+}
+
+# Permission update
+# Syntax: _perm_update <dir> <uid>
 _perm_update() {
     local dir_path=$1
     local user_id=$2
@@ -15,6 +26,8 @@ _perm_update() {
     fi
 }
 
+# Create dir if not exist and update permission
+# Syntax: _create_dir_perm <dir> <uid>
 _create_dir_perm() {
     local dir_path=$1
     local user_id=$2

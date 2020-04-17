@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.2.0
+
+* Additional Web UI support - combustion and transmission-web-control
+
 ## Version 0.1.0
 
 * Run transmission as a less privileged user
