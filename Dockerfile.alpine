@@ -1,6 +1,6 @@
 FROM alpine:3.11
 
-ADD ./scripts /scripts
+ADD ./app/scripts /scripts
 
 RUN echo @testing http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories \
     && apk update --no-cache > /dev/null \
@@ -14,8 +14,8 @@ RUN echo @testing http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/
     && rm -rf /tmp/* /var/tmp/* \
     && useradd -u 1999 -U -s $(which nologin) jedi
 
-ADD ./openvpn/ /etc/openvpn/
-ADD ./transmission/ /etc/transmission/
+ADD ./app/openvpn/ /etc/openvpn/
+ADD ./app/transmission/ /etc/transmission/
 
 ENV CREATE_TUN_DEVICE="true" \
     OPENVPN_USERNAME="NONE" \

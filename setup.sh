@@ -309,7 +309,7 @@ main() {
 
     # Build the docker image if local
     if [[ "${ARG_LOCAL}" == "true" ]]; then
-        docker build --no-cache -t "${IMAGE_TAG}:latest-${image_os}" -f "Dockerfile.${image_os}" app
+        docker build --no-cache -t "${IMAGE_TAG}:latest-${image_os}" -f "Dockerfile.${image_os}" .
     fi
     # Docker capability
     OPT="-d --cap-add=NET_ADMIN \\ "
