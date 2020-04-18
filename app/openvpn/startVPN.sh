@@ -47,6 +47,12 @@ else
     chmod 600 /control/ovpn-auth.txt
 fi
 
+# Reset the env variables from settings.json
+if [[ -f "${TRANSMISSION_HOME}/settings.json" ]] && [[ "${TRANSMISSION_SETTING_DEFAULT}" == "false" ]]; then
+    echo "[TRANSMISSION] Transmission will use previous config..." >> ${LOG_FILE}
+    _get_settings "${TRANSMISSION_HOME}/settings.json"
+fi
+
 # add transmission credentials to transmission-auth.txt file
 if [[ "${TRANSMISSION_RPC_AUTHENTICATION_REQUIRED}" == "true" ]]; then
     echo "[OPENVPN] Setting Transmission RPC credentials..." >> ${LOG_FILE}

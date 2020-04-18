@@ -26,6 +26,19 @@ _firewall_allow_port() {
     fi
 }
 
+# Get settings if config exists
+_get_settings() {
+    local settings_file=$1
+
+    for setting in $(jq -r 'to_entries | map(.key + "=" + (.value | tostring)) | .[]' "${settings_file}"); do
+        key=$(echo "transmission_${setting%=*}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+        value=${setting#*=}
+        if [[ -z "$(printf '%s' "${!key}")" ]]; then
+            eval "export $key=$value"
+        fi
+    done
+}
+
 # Get default GW/interface/network
 _get_default_gw() {
     export def_gateway=''

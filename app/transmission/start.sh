@@ -48,11 +48,11 @@ echo "[TRANSMISSION] Setting TRANSMISSION_BIND_ADDRESS_IPV4 to ${tun_device} dev
 export TRANSMISSION_BIND_ADDRESS_IPV4=${tun_ip}
 
 # Transmission custom UI
-if [[ "$(_lowercase "${TRANSMISSION_WEB_UI}")" == "combustion" ]]; then
+if [[ "${TRANSMISSION_WEB_UI,,}" == "combustion" ]]; then
     echo "[TRANSMISSION] Using Combustion as the Web UI"
     export TRANSMISSION_WEB_UI="combustion"
     export TRANSMISSION_WEB_HOME="/usr/share/transmission-ui/combustion"
-elif [[ "$(_lowercase "${TRANSMISSION_WEB_UI}")" == "transmission-web-control" ]]; then
+elif [[ "${TRANSMISSION_WEB_UI,,}" == "transmission-web-control" ]]; then
     echo "[TRANSMISSION] Using Transmission Web Control as the Web UI"
     export TRANSMISSION_WEB_UI="transmission-web-control"
     export TRANSMISSION_WEB_HOME="/usr/share/transmission-ui/transmission-web-control"
@@ -69,5 +69,5 @@ dockerize -template "/etc/transmission/settings.tmpl:${TRANSMISSION_HOME}/settin
 _perm_update "${TRANSMISSION_HOME}" "${TRANSMISSION_USER}"
 
 echo "[TRANSMISSION] Transmission will run as \"${TRANSMISSION_USER}\" with UID \"${TRANSMISSION_UID}\" and GID \"${TRANSMISSION_GID}\""
-exec su --preserve-environment ${TRANSMISSION_USER} -s /bin/bash -c "/usr/bin/transmission-daemon -g ${TRANSMISSION_HOME} --logfile ${LOG_FILE}" &
+exec su -p ${TRANSMISSION_USER} -s /bin/bash -c "/usr/bin/transmission-daemon -g ${TRANSMISSION_HOME} --logfile ${LOG_FILE}" &
 

@@ -1,14 +1,5 @@
 # shellcheck shell=bash
 
-# Convert to lower case
-# Syntax: _lowercase <text>
-_lowercase() {
-    local in=$1
-    local out=''
-    out=$(echo "${in}" | tr '[:upper:]' '[:lower:]')
-    echo "${out}"
-}
-
 # Permission update
 # Syntax: _perm_update <dir> <uid>
 _perm_update() {
