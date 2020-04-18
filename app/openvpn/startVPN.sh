@@ -51,6 +51,10 @@ fi
 if [[ -f "${TRANSMISSION_HOME}/settings.json" ]] && [[ "${TRANSMISSION_SETTING_DEFAULT}" == "false" ]]; then
     echo "[TRANSMISSION] Transmission will use previous config..." >> ${LOG_FILE}
     _get_settings "${TRANSMISSION_HOME}/settings.json"
+else
+    echo "[TRANSMISSION] Transmission will use default config..." >> ${LOG_FILE}
+    dockerize -template "/etc/transmission/settings.tmpl:/tmp/settings.json"
+    _get_settings "/tmp/settings.json"
 fi
 
 # add transmission credentials to transmission-auth.txt file
