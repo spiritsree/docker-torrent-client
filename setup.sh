@@ -19,6 +19,7 @@ ARG_DIR="${LOCAL_DATA_DIR}"
 ARG_PROVIDER=''
 ARG_LOCAL='false'
 ARG_PROTO='UDP'
+ARG_IMAGE='spiritsree/docker-torrent-client:latest-ubuntu'
 OPENVPN_SERVERS="${BASEDIR}/app/openvpn/vpn_servers.json"
 
 # Highlight the message
@@ -57,18 +58,19 @@ _usage() {
     echo '    -o|--os <ubuntu|alpine>       OS type, Default: ubuntu'
     echo "    -d|--data-dir <local-dir>     Local dir to mount for data (This should be added in Docker File Sharing Default: ${LOCAL_DATA_DIR})"
     echo '    -l|--local                    Build docker image locally'
+    echo '    -i|--image <docker-image>     Docker Image (Default: spiritsree/docker-torrent-client:latest-ubuntu)'
     echo '    --proto <UDP|TCP>             VPN connection proto UDP or TCP'
     echo
     echo 'Examples:'
     echo "    ${SCRIPT_NAME}" -v
-    echo "    ${SCRIPT_NAME} -u user -p password -v HideMe"
+    echo "    ${SCRIPT_NAME} -u user -p password -v HideMe -i spiritsree/docker-torrent-client:latest-ubuntu"
     echo "    ${SCRIPT_NAME} -u user -p password -v FastestVPN --proto tcp"
     echo
 }
 
 # Get Options
 _getOptions() {
-    optspec=":hlu:p:o:d:v:-:"
+    optspec=":hlu:p:o:d:v:i:-:"
     while getopts "$optspec" opt; do
         case $opt in
             -)
@@ -95,7 +97,11 @@ _getOptions() {
                         ;;
                     proto)
                         ARG_PROTO="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
-                        [[ ${ARG_PROTO} =~ ^-.* || "${ARG_DIR}" = "" ]] && { _usage "Option --proto requires an agument"; exit 1; }
+                        [[ ${ARG_PROTO} =~ ^-.* || "${ARG_PROTO}" = "" ]] && { _usage "Option --proto requires an agument"; exit 1; }
+                        ;;
+                    image)
+                        ARG_IMAGE="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
+                        [[ ${ARG_IMAGE} =~ ^-.* || "${ARG_IMAGE}" = "" ]] && { _usage "Option --image requires an agument"; exit 1; }
                         ;;
                     help)
                         _usage
@@ -126,6 +132,10 @@ _getOptions() {
                 ;;
             p)
                 ARG_PASS="${OPTARG}"
+                ;;
+            i)
+                ARG_IMAGE="${OPTARG}"
+                [[ ${ARG_IMAGE} =~ ^-.* || "${ARG_IMAGE}" = "" ]] && { _usage "Option --image requires an agument"; exit 1; }
                 ;;
             o)
                 ARG_OS="${OPTARG}"
@@ -299,7 +309,7 @@ main() {
 
     # Build the docker image if local
     if [[ "${ARG_LOCAL}" == "true" ]]; then
-        docker build --no-cache -t "${IMAGE_TAG}-${image_os}" -f "Dockerfile.${image_os}" app
+        docker build --no-cache -t "${IMAGE_TAG}:latest-${image_os}" -f "Dockerfile.${image_os}" app
     fi
     # Docker capability
     OPT="-d --cap-add=NET_ADMIN \\ "
@@ -338,9 +348,9 @@ main() {
 
     # Docker Image to run
     if [[ "${ARG_LOCAL}" == "true" ]]; then
-        OPT+="\n\t\t${IMAGE_TAG}-${image_os}:latest \n"
+        OPT+="\n\t\t${IMAGE_TAG}:latest-${image_os} \n"
     else
-        OPT+="\n\t\t<docker-image:tag> \n"
+        OPT+="\n\t\t${ARG_IMAGE} \n"
     fi
 
     # Run this command to start the docker
