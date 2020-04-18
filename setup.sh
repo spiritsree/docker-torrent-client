@@ -58,7 +58,7 @@ _usage() {
     echo '    -o|--os <ubuntu|alpine>       OS type, Default: ubuntu'
     echo "    -d|--data-dir <local-dir>     Local dir to mount for data (This should be added in Docker File Sharing Default: ${LOCAL_DATA_DIR})"
     echo '    -l|--local                    Build docker image locally'
-    echo '    -i|--image <docker-image>     Docker Image'
+    echo '    -i|--image <docker-image>     Docker Image (Default: spiritsree/docker-torrent-client:latest-ubuntu)'
     echo '    --proto <UDP|TCP>             VPN connection proto UDP or TCP'
     echo
     echo 'Examples:'
