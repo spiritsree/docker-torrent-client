@@ -39,6 +39,8 @@ With `OPENVPN_HOSTNAME` as an option you need to pass `OPENVPN_PROTO` as well if
 
 You can refer [transmission config](https://github.com/transmission/transmission/wiki/Editing-Configuration-Files) for details.
 
+All these are set in the config directly with default during the intial run. If you set these ENV during the docker run, those settings will have the precedence. If not set, the value will get constructed from the config file (if previous config exists).
+
 Variable | Description | Default |
 :--------|:------------|:--------|
 `TRANSMISSION_ALT_SPEED_ENABLED` | Turtle Mode for GUI | `false` |
@@ -86,7 +88,7 @@ Variable | Description | Default |
 `TRANSMISSION_PEER_PORT_RANDOM_ON_START` | Select a rando peer port if `true` | `false` |
 `TRANSMISSION_PORT_FORWARDING_ENABLED` | Enable UPnP or NAT-PMP | `false` |
 `TRANSMISSION_DOWNLOAD_QUEUE_ENABLED` | When true, Transmission will only download download-queue-size non-stalled torrents at once | `true` |
-`TRANSMISSION_DOWNLOAD_QUEUE_SIZE` | Download queue size | `5` |
+`TRANSMISSION_DOWNLOAD_QUEUE_SIZE` | Download queue size | `6` |
 `TRANSMISSION_QUEUE_STALLED_ENABLED` | When true, torrents that have not shared data for queue-stalled-minutes are treated as 'stalled' and are not counted against the queue-download-size and seed-queue-size limits | `true` |
 `TRANSMISSION_QUEUE_STALLED_MINUTES` | Queue stalled in minutes | `30` |
 `TRANSMISSION_SEED_QUEUE_ENABLED` | When true. Transmission will only seed seed-queue-size non-stalled torrents at once | `false` |
@@ -112,6 +114,8 @@ Variable | Description | Default |
 `TRANSMISSION_RATIO_LIMIT_ENABLED` | Enable ratio limit | `false` |
 `TRANSMISSION_HOME` | Home dir for transmission to store the state | `/data/transmission-home` |
 `TRANSMISSION_RUNAS_ROOT` | Run transmission as root user | `false` |
+`TRANSMISSION_WEB_UI` | Custom web UI (`combustion` or `transmission-web-control`) | |
+`TRANSMISSION_SETTING_DEFAULT` | Use the default config | `false` |
 
 ## Firewall
 

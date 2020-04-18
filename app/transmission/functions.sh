@@ -1,5 +1,7 @@
 # shellcheck shell=bash
 
+# Permission update
+# Syntax: _perm_update <dir> <uid>
 _perm_update() {
     local dir_path=$1
     local user_id=$2
@@ -15,6 +17,8 @@ _perm_update() {
     fi
 }
 
+# Create dir if not exist and update permission
+# Syntax: _create_dir_perm <dir> <uid>
 _create_dir_perm() {
     local dir_path=$1
     local user_id=$2

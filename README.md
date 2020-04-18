@@ -44,6 +44,8 @@ Examples:
 
 ## Accessing the UI
 
+Just visit `http://<local-ip>:9091/`.
+
 Web UI can be accessed using browser extensions
 
 * [Chome](https://chrome.google.com/webstore/detail/transmission-easy-client/cmkphjiphbjkffbcbnjiaidnjhahnned?hl=en)
@@ -64,14 +66,21 @@ Web UI can be accessed using browser extensions
 
 * [Usage](./doc/usage.md)
 * [Environment Variables](./doc/env.md)
+* [Accessing the UI](./doc/web-ui.md)
 * [Docker Options](./doc/docker.md)
 * [Debugging](./doc/debug.md)
 
 ## Reference
 
-* [dockerize](https://github.com/jwilder/dockerize)
-* [dumb-init](https://github.com/Yelp/dumb-init)
+* [Combustion UI](https://github.com/Secretmapper/combustion)
+* [Dockerize](https://github.com/jwilder/dockerize)
+* [Dumb Init](https://github.com/Yelp/dumb-init)
 * [Firewall](https://help.ubuntu.com/lts/serverguide/firewall.html)
-* [openvpn](https://openvpn.net/community-resources/reference-manual-for-openvpn-2-4/)
-* [transmission](https://github.com/transmission/transmission)
-* [transmission config](https://github.com/transmission/transmission/wiki/Editing-Configuration-Files)
+* [Openvpn](https://openvpn.net/community-resources/reference-manual-for-openvpn-2-4/)
+* [Transmission](https://github.com/transmission/transmission)
+* [Transmission Config](https://github.com/transmission/transmission/wiki/Editing-Configuration-Files)
+* [Transmission Web Control UI](https://github.com/ronggang/transmission-web-control)
+
+## License
+
+MIT

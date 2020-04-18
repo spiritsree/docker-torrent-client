@@ -47,6 +47,16 @@ else
     chmod 600 /control/ovpn-auth.txt
 fi
 
+# Reset the env variables from settings.json
+if [[ -f "${TRANSMISSION_HOME}/settings.json" ]] && [[ "${TRANSMISSION_SETTING_DEFAULT}" == "false" ]]; then
+    echo "[TRANSMISSION] Transmission will use previous config..." >> ${LOG_FILE}
+    _get_settings "${TRANSMISSION_HOME}/settings.json"
+else
+    echo "[TRANSMISSION] Transmission will use default config..." >> ${LOG_FILE}
+    dockerize -template "/etc/transmission/settings.tmpl:/tmp/settings.json"
+    _get_settings "/tmp/settings.json"
+fi
+
 # add transmission credentials to transmission-auth.txt file
 if [[ "${TRANSMISSION_RPC_AUTHENTICATION_REQUIRED}" == "true" ]]; then
     echo "[OPENVPN] Setting Transmission RPC credentials..." >> ${LOG_FILE}
@@ -92,11 +102,11 @@ _get_default_gw
 if [[ "${FIREWALL_ENABLED,,}" == "true" ]]; then
     echo "[FIREWALL] Enabling firewall..." >> ${LOG_FILE}
     sed -i 's/IPV6=yes/IPV6=no/' /etc/default/ufw
-    ufw enable
+    ufw enable > /dev/null
 
     # Allow transmission peer port
     echo "[FIREWALL] Allowing transmission peer port ${TRANSMISSION_ALLOW_PORT}..." >> ${LOG_FILE}
-    _firewall_allow_port "${TRANSMISSION_ALLOW_PORT}"
+    _firewall_allow_port "${TRANSMISSION_ALLOW_PORT}" >> ${LOG_FILE}
 
     # Allow transmission RPC port from gateway
     if [[ -n "${def_gateway-}" ]] && [[ "${TRANSMISSION_RPC_ENABLED}" == "true" ]]; then

@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.2.0
+
+* Additional Web UI support - combustion and transmission-web-control
+* Graceful shutdown of transmission
+* Keep default transmission configs to the template.
+* Option to set transmission config during docker run
+* Override default flag TRANSMISSION_SETTING_DEFAULT
+
 ## Version 0.1.0
 
 * Run transmission as a less privileged user

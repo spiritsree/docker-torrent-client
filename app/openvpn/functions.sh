@@ -18,12 +18,25 @@ _firewall_allow_port() {
     if [[ -n "${port-}" ]]; then
         if [[ -n "${source_ip-}" ]]; then
             echo "[FIREWALL] Allowing IP ${source_ip} to port ${port} in firewall..."
-            ufw allow from "${source_ip}" to any port "${port}"
+            ufw allow from "${source_ip}" to any port "${port}" > /dev/null
         else
             echo "[FIREWALL] Allowing port ${port} in firewall..."
-            ufw allow "${port}"
+            ufw allow "${port}" > /dev/null
         fi
     fi
+}
+
+# Get settings if config exists
+_get_settings() {
+    local settings_file=$1
+
+    for setting in $(jq -r 'to_entries | map(.key + "=" + (.value | tostring)) | .[]' "${settings_file}"); do
+        key=$(echo "transmission_${setting%=*}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+        value=${setting#*=}
+        if [[ -z "$(printf '%s' "${!key}")" ]]; then
+            eval "export $key=$value"
+        fi
+    done
 }
 
 # Get default GW/interface/network
