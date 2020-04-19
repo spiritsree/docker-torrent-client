@@ -25,19 +25,15 @@ workflows:
           requires:
             - test
           filters:
-            branches:
-              only: master
             tags:
-              only: /.*v[0-9.]+$/
+              only: /.*?v[0-9.]+/
       - alpine-image-build:
           context: secure-context
           requires:
             - test
           filters:
-            branches:
-              only: master
             tags:
-              only: /.*v[0-9.]+$/
+              only: /.*?v[0-9.]+/
 
 
 jobs:
