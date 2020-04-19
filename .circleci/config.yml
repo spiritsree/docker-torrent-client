@@ -102,7 +102,7 @@ jobs:
           at: ~/workspace
       - setup_remote_docker
       - run:
-          name: Get the Tag
+          name: Alpine Image Build and Push
           command: |
             echo "Tag for the build is  << pipeline.git.tag >>"
             DOCKER_TAG=$(echo "<< pipeline.git.tag >>" | sed -E 's/.*?(v[0-9.]+)$/\1-alpine/')
