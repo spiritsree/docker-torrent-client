@@ -21,6 +21,7 @@ workflows:
           requires:
             - checkout_code
       - ubuntu-image-build:
+          context: secure-context
           requires:
             - test
           filters:
@@ -29,6 +30,7 @@ workflows:
             tags:
               only: /.*v[0-9.]+$/
       - alpine-image-build:
+          context: secure-context
           requires:
             - test
           filters:
