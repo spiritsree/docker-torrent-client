@@ -17,13 +17,6 @@ workflows:
     # Run the build job
     jobs:
       - checkout_code
-          filters:
-            branches:
-              only:
-                - master
-                - develop
-            tags:
-              only: /.*/
       - test:
           requires:
             - checkout_code
