@@ -24,7 +24,7 @@ workflows:
                 - develop
       - test:
           requires:
-            - checkout_code
+            - checkout-code
           filters:
             branches:
               only:
@@ -53,6 +53,8 @@ workflows:
             branches:
               ignore: /.*/
       - test:
+          requires:
+            - checkout-code
           filters:
             tags:
               only: /.*/
