@@ -26,14 +26,18 @@ workflows:
             - test
           filters:
             tags:
-              only: /.*?v[0-9.]+/
+              only: /.*?v[\d.]+/
+            branches:
+              ignore: /.*/
       - alpine-image-build:
           context: secure-context
           requires:
             - test
           filters:
             tags:
-              only: /.*?v[0-9.]+/
+              only: /.*?v[\d.]+/
+            branches:
+              ignore: /.*/
 
 
 jobs:
