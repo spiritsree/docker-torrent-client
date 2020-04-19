@@ -1,10 +1,12 @@
 # Docker Torrent Client
 
-[![CircleCI](https://circleci.com/github/spiritsree/docker-torrent-client.svg?style=svg)](https://app.circleci.com/pipelines/github/spiritsree/docker-torrent-client)
+[![CircleCI](https://circleci.com/gh/spiritsree/docker-torrent-client.svg?style=svg)](https://app.circleci.com/pipelines/github/spiritsree/docker-torrent-client)
+[![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/spiritsree/docker-torrent-client)](https://hub.docker.com/repository/docker/spiritsree/docker-torrent-client)
 [![Docker Cloud Automated build](https://img.shields.io/docker/cloud/automated/spiritsree/docker-torrent-client)](https://hub.docker.com/repository/docker/spiritsree/docker-torrent-client)
-[![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/spiritsree/docker-torrent-client?style=for-the-badge)](https://hub.docker.com/repository/docker/spiritsree/docker-torrent-client)
-[![Docker Pulls](https://img.shields.io/docker/pulls/spiritsree/docker-torrent-client?style=social)](https://hub.docker.com/repository/docker/spiritsree/docker-torrent-client)
+[![Docker Pulls](https://img.shields.io/docker/pulls/spiritsree/docker-torrent-client)](https://hub.docker.com/repository/docker/spiritsree/docker-torrent-client)
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/spiritsree/docker-torrent-client?sort=semver)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/containous/traefik/blob/master/LICENSE.md)
+
 
 Docker torrent client with VPN
 
