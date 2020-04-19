@@ -1,0 +1,46 @@
+# Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
+version: 2.1
+# Use a package of configuration called an orb.
+
+# Defaults
+defaults: &workdirAndImage
+  working_directory: ~/workspace
+  docker:
+    - image: circleci/buildpack-deps:bionic
+
+# Orchestrate or schedule a set of jobs
+workflows:
+  # Docker image build workflow
+  docker-image-build:
+    # Run the build job
+    jobs:
+      - checkout_code
+      - test:
+          requires:
+            - checkout_code
+          filters:
+            branches:
+              only:
+                - master
+
+jobs:
+  checkout_code:
+    steps:
+      - checkout:
+          path: ~/workspace/repo
+      - persist_to_workspace:
+          root: ~/workspace
+          paths:
+            - repo/
+
+  test:
+    working_directory: ~/workspace/repo
+    steps:
+      - attach_workspace:
+          at: ~/workspace
+      - run:
+          name: Run tests
+          command: |
+            echo "Running tests"
+            find . -type f -regex ".sh" -exec shellcheck {} \;
+          when: always
