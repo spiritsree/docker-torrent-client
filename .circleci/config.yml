@@ -13,7 +13,7 @@ executors:
 # Orchestrate or schedule a set of jobs
 workflows:
   # Docker image build workflow
-  docker-image-build:
+  test-build:
     # Run the build job
     jobs:
       - checkout_code
@@ -25,10 +25,32 @@ workflows:
               only:
                 - master
                 - develop
+      - ubuntu-image-build:
+          requires:
+            - test
+          filters:
+            branches:
+              ignore: /.*/
+      - alpine-image-build:
+          requires:
+            - test
+          filters:
+            branches:
+              ignore: /.*/
+
+  docker-image-build:
+    # Run the build job
+    jobs:
+      - checkout_code
+      - test:
+          requires:
+            - checkout_code
+          filters:
             tags:
               only: /.*/
+            branches:
+              ignore: /.*/
       - ubuntu-image-build:
-          context: secure-context
           requires:
             - test
           filters:
@@ -37,7 +59,6 @@ workflows:
             branches:
               ignore: /.*/
       - alpine-image-build:
-          context: secure-context
           requires:
             - test
           filters:
