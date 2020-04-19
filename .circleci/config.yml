@@ -20,6 +20,13 @@ workflows:
       - test:
           requires:
             - checkout_code
+          filters:
+            branches:
+              only:
+                - master
+                - develop
+            tags:
+              only: /.*/
       - ubuntu-image-build:
           context: secure-context
           requires:
