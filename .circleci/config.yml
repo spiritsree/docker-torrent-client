@@ -20,6 +20,23 @@ workflows:
       - test:
           requires:
             - checkout_code
+      - ubuntu-image-build:
+          requires:
+            - test
+          filters:
+            branches:
+              only: master
+            tags:
+              only: /.*v[0-9.]+$/
+      - alpine-image-build:
+          requires:
+            - test
+          filters:
+            branches:
+              only: master
+            tags:
+              only: /.*v[0-9.]+$/
+
 
 jobs:
   checkout_code:
@@ -48,3 +65,62 @@ jobs:
             echo "Running tests";
             find . -type f -regex ".*\.sh" | xargs shellcheck --external-sources
           when: always
+
+  ubuntu-image-build:
+    executor: docker-executor
+    working_directory: ~/workspace/repo
+    environment:
+      DOCKER_IMAGE_NAME: spiritsree/docker-torrent-client
+      DOCKER_TAG: ''
+    steps:
+      - attach_workspace:
+          at: ~/workspace
+      - setup_remote_docker
+      - run:
+          name: Get the Tag
+          command: |
+            echo "Tag for the build is  << pipeline.git.tag >>"
+            DOCKER_TAG=$(echo "<< pipeline.git.tag >>" | sed -E 's/.*?(v[0-9.]+)$/\1-ubuntu/')
+            export $DOCKER_TAG
+      - run:
+          name: Build Image
+          command: docker build -t $DOCKER_IMAGE_NAME:$DOCKER_TAG -f Dockerfile.ubuntu .
+      - run:
+          name: Docker Login
+          command: echo $DOCKER_CLOUD_PASS | docker login -u $DOCKER_CLOUD_USER --password-stdin
+      - run:
+          name: Push Image
+          command: docker push $DOCKER_IMAGE_NAME:$DOCKER_TAG
+      - run:
+          name: Docker Logout
+          command: docker logout
+
+
+  alpine-image-build:
+    executor: docker-executor
+    working_directory: ~/workspace/repo
+    environment:
+      DOCKER_IMAGE_NAME: spiritsree/docker-torrent-client
+      DOCKER_TAG: ''
+    steps:
+      - attach_workspace:
+          at: ~/workspace
+      - setup_remote_docker
+      - run:
+          name: Get the Tag
+          command: |
+            echo "Tag for the build is  << pipeline.git.tag >>"
+            DOCKER_TAG=$(echo "<< pipeline.git.tag >>" | sed -E 's/.*?(v[0-9.]+)$/\1-alpine/')
+            export $DOCKER_TAG
+      - run:
+          name: Build Image
+          command: docker build -t $DOCKER_IMAGE_NAME:$DOCKER_TAG -f Dockerfile.alpine .
+      - run:
+          name: Docker Login
+          command: echo $DOCKER_CLOUD_PASS | docker login -u $DOCKER_CLOUD_USER --password-stdin
+      - run:
+          name: Push Image
+          command: docker push $DOCKER_IMAGE_NAME:$DOCKER_TAG
+      - run:
+          name: Docker Logout
+          command: docker logout
