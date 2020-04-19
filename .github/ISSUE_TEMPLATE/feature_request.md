@@ -2,7 +2,7 @@
 name: Feature request
 about: Suggest an improvement
 title: "[FEATURE]"
-labels: 'feature'
+labels: 'kind/feature'
 assignees: ''
 
 ---
