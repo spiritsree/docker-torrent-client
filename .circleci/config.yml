@@ -24,6 +24,7 @@ workflows:
 jobs:
   checkout_code:
     executor: docker-executor
+    resource_class: small
     steps:
       - checkout:
           path: ~/workspace/repo
@@ -33,7 +34,10 @@ jobs:
             - repo/
 
   test:
+    docker:
+      - image: koalaman/shellcheck-alpine:stable
     executor: docker-executor
+    resource_class: small
     working_directory: ~/workspace/repo
     steps:
       - attach_workspace:
@@ -42,5 +46,5 @@ jobs:
           name: Run tests
           command: |
             echo "Running tests";
-            find . -type f -regex ".sh" -exec shellcheck {} \;
+            find . -type f -regex ".*\.sh" | xargs shellcheck --external-sources
           when: always
