@@ -20,10 +20,14 @@ Docker torrent client with VPN
 
 ## Requirements
 
+If you are building this locally you need these tools.
+
 * [jq](https://stedolan.github.io/jq/)
 * [docker](https://www.docker.com/)
 
 ## Quick start
+
+For local build checkout this git repo and run the below command.
 
 ```
 $ ./setup.sh -h
@@ -51,25 +55,44 @@ Examples:
     setup.sh -u user -p password -v FastestVPN --proto tcp
 ```
 
+Using docker pull use the following command.
+
+```
+docker run -d --cap-add=NET_ADMIN \
+        --sysctl net.ipv6.conf.all.disable_ipv6=0 \
+        --dns 8.8.8.8 \
+        --dns 8.8.4.4 \
+        -v <local-dir>:/data \
+        -e OPENVPN_PROVIDER='<VPN Provider>' \
+        -e OPENVPN_CONNECTION='<VPN Provider Hostname>:<proto>' \
+        -e OPENVPN_USERNAME='<VPN Provider Username>' \
+        -e OPENVPN_PASSWORD='<VPN Provider Password>' \
+        -p 9091:9091 \
+        spiritsree/docker-torrent-client:latest-alpine
+```
+
+If you want to use deluge client use the following.
+
+```
+docker run -d --cap-add=NET_ADMIN \
+        --sysctl net.ipv6.conf.all.disable_ipv6=0 \
+        --dns 8.8.8.8 \
+        --dns 8.8.4.4 \
+        -v <local-dir>:/data \
+        -e OPENVPN_PROVIDER='<VPN Provider>' \
+        -e OPENVPN_CONNECTION='<VPN Provider Hostname>:<proto>' \
+        -e OPENVPN_USERNAME='<VPN Provider Username>' \
+        -e OPENVPN_PASSWORD='<VPN Provider Password>' \
+        -e TOR_CLIENT=deluge \
+        -p 9091:9091 \
+        spiritsree/docker-torrent-client:latest-alpine
+```
+
 ## Accessing the UI
 
-Just visit `http://<local-ip>:9091/`.
+Just put this in browser `http://<local-ip>:9091/`.
 
-Web UI can be accessed using browser extensions
-
-* [Chome](https://chrome.google.com/webstore/detail/transmission-easy-client/cmkphjiphbjkffbcbnjiaidnjhahnned?hl=en)
-* [FireFox](https://addons.mozilla.org/en-US/firefox/addon/transmission-easy-client/)
-* [Opera](https://addons.opera.com/en/extensions/details/transmission-easy-client/)
-
-**Config Parameters**
-
-| Param        | value from ENV                      |  Default          |
-|:------------:|:-----------------------------------:|:-----------------:|
-| **Username** | TRANSMISSION_RPC_USERNAME           | username          |
-| **Password** | TRANSMISSION_RPC_PASSWORD           | password          |
-| **IP**       | Localhost IP                        | 127.0.0.1         |
-| **Port**     | TRANSMISSION_RPC_PORT               | 9091              |
-| **Path**     | TRANSMISSION_RPC_URL and append rpc | /transmission/rpc |
+For more details visit [Accessing the UI](./doc/web-ui.md).
 
 ## Documentation
 
@@ -78,11 +101,16 @@ Web UI can be accessed using browser extensions
 * [Accessing the UI](./doc/web-ui.md)
 * [Docker Options](./doc/docker.md)
 * [Debugging](./doc/debug.md)
+* [Container Networking](./doc/networking.md)
 
 ## Reference
 
 * [Combustion UI](https://github.com/Secretmapper/combustion)
+* [Deluge](https://dev.deluge-torrent.org/wiki/UserGuide)
+* [Deluge Code](https://github.com/deluge-torrent/deluge)
+* [Delige FAQ](https://dev.deluge-torrent.org/wiki/Faq)
 * [Dockerize](https://github.com/jwilder/dockerize)
+* [Docker Compose](https://docs.docker.com/compose/compose-file/)
 * [Dumb Init](https://github.com/Yelp/dumb-init)
 * [Firewall](https://help.ubuntu.com/lts/serverguide/firewall.html)
 * [Openvpn](https://openvpn.net/community-resources/reference-manual-for-openvpn-2-4/)

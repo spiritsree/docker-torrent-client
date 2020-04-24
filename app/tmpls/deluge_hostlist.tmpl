@@ -1,0 +1,14 @@
+{
+    "file": 3,
+    "format": 1
+}{
+    "hosts": [
+        [
+            "012d58b2050b4d83a8a45d6433795bdb",
+            "127.0.0.1",
+            {{ .Env.DELUGE_DAEMON_PORT }},
+            "{{ .Env.DELUGE_AUTH_USERNAME }}",
+            "{{ .Env.DELUGE_AUTH_PASSWORD }}"
+        ]
+    ]
+}

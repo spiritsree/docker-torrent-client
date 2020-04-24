@@ -2,33 +2,14 @@
 
 # export the variables so that this process can access them
 # shellcheck disable=SC1091
-source /etc/transmission/env.sh
+source /etc/templates/env.sh
 
-# shellcheck source=functions.sh
+# shellcheck source=../scripts/functions.sh
 # shellcheck disable=SC1091
-source /etc/transmission/functions.sh
+source /usr/local/scripts/functions.sh
 
-# This scrip will be passed with multiple arguments
+# This script will be passed with multiple arguments
 # start.sh <tunnel-device> <tun-mtu> <link-mtu> <tunnel-ip> <net-mask|remote-ip> <init|restart>
-
-# Create a non privileged user if not root
-if [[ "${TRANSMISSION_RUNAS_ROOT}" == "false" ]]; then
-    TRANSMISSION_USER='jedi'
-else
-    TRANSMISSION_USER='root'
-fi
-
-TRANSMISSION_UID=$(id -u "${TRANSMISSION_USER}")
-TRANSMISSION_GID=$(id -g "${TRANSMISSION_USER}")
-export TRANSMISSION_USER
-export TRANSMISSION_UID
-export TRANSMISSION_GID
-
-# Create the directories if not
-_create_dir_perm "${TRANSMISSION_HOME}" "${TRANSMISSION_USER}"
-_create_dir_perm "${TRANSMISSION_WATCH_DIR}" "${TRANSMISSION_USER}"
-_create_dir_perm "${TRANSMISSION_INCOMPLETE_DIR}" "${TRANSMISSION_USER}"
-_create_dir_perm "${TRANSMISSION_DOWNLOAD_DIR}" "${TRANSMISSION_USER}"
 
 # Start the transmission client after VPN is ready
 echo "[TRANSMISSION] Starting transmission client..."
@@ -47,6 +28,13 @@ fi
 echo "[TRANSMISSION] Setting TRANSMISSION_BIND_ADDRESS_IPV4 to ${tun_device} device ip: ${tun_ip}"
 export TRANSMISSION_BIND_ADDRESS_IPV4=${tun_ip}
 
+# add transmission credentials to transmission-auth.txt file
+if [[ "${TRANSMISSION_RPC_AUTHENTICATION_REQUIRED}" == "true" ]]; then
+    echo "[TRANSMISSION] Setting Transmission RPC credentials to /control/transmission-auth.txt..." >> "${LOG_FILE}"
+    printf '%s\n' "${TRANSMISSION_RPC_USERNAME}" "${TRANSMISSION_RPC_PASSWORD}" > /control/transmission-auth.txt
+    chmod 644 /control/transmission-auth.txt
+fi
+
 # Transmission custom UI
 if [[ "${TRANSMISSION_WEB_UI,,}" == "combustion" ]]; then
     echo "[TRANSMISSION] Using Combustion as the Web UI"
@@ -64,10 +52,23 @@ fi
 echo "[TRANSMISSION] Generating settings.json from env variables..."
 # Settings are from https://github.com/transmission/transmission/wiki/Editing-Configuration-Files
 # For details about the settings refer the url
-dockerize -template "/etc/transmission/settings.tmpl:${TRANSMISSION_HOME}/settings.json"
+dockerize -template "/etc/templates/transmission_settings.tmpl:${TRANSMISSION_HOME}/settings.json"
 
-_perm_update "${TRANSMISSION_HOME}" "${TRANSMISSION_USER}"
+_perm_update "${TRANSMISSION_HOME}" "${TOR_CLIENT_USER}"
 
-echo "[TRANSMISSION] Transmission will run as \"${TRANSMISSION_USER}\" with UID \"${TRANSMISSION_UID}\" and GID \"${TRANSMISSION_GID}\""
-exec su -p ${TRANSMISSION_USER} -s /bin/bash -c "/usr/bin/transmission-daemon -g ${TRANSMISSION_HOME} --logfile ${LOG_FILE}" &
+if [[ "${TRANSMISSION_LOG_LEVEL,,}" == "info" ]]; then
+    export TRANSMISSION_LOG_OPTS="--log-info"
+elif [[ "${TRANSMISSION_LOG_LEVEL,,}" == "debug" ]]; then
+    export TRANSMISSION_LOG_OPTS="--log-debug"
+fi
 
+if [[ "${ENABLE_FILE_LOGGING}" == "false" ]]; then
+    export TRANSMISSION_OPTS="-g ${TRANSMISSION_HOME} ${TRANSMISSION_LOG_OPTS} --foreground"
+else
+    export TRANSMISSION_OPTS="-g ${TRANSMISSION_HOME} ${TRANSMISSION_LOG_OPTS} --logfile ${LOG_FILE}"
+fi
+
+echo "[TRANSMISSION] Transmission will run as \"${TOR_CLIENT_USER}\" with UID \"${TOR_CLIENT_UID}\" and GID \"${TOR_CLIENT_GID}\""
+exec su -p "${TOR_CLIENT_USER}" -s /bin/bash -c "/usr/bin/transmission-daemon ${TRANSMISSION_OPTS}" &
+
+echo "[TRANSMISSION] Transmission startup completed..."

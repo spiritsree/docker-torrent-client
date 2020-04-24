@@ -1,33 +1,49 @@
 FROM ubuntu:18.04
 
-ADD ./app/scripts /scripts
+ADD ./app/scripts /usr/local/scripts
 
 # Enable the non-interactive mode while installing apps
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update > /dev/null \
+    && apt-get -y install --no-install-recommends apt-utils software-properties-common > /dev/null 2>&1 \
+    && echo "**** add repositories ****" \
+    && add-apt-repository ppa:transmissionbt/ppa > /dev/null \
+    && add-apt-repository ppa:deluge-team/stable > /dev/null \
+    && apt-get update > /dev/null \
+    && echo "**** install packages ****" \
     && apt-get -y upgrade > /dev/null \
-    && apt-get -y install --no-install-recommends apt-utils software-properties-common git curl jq > /dev/null \
+    && apt-get -y install --no-install-recommends git curl jq net-tools > /dev/null \
     && apt-get -y install --no-install-recommends iputils-ping ufw > /dev/null \
     && apt-get -y install --no-install-recommends dumb-init > /dev/null \
-    && add-apt-repository ppa:transmissionbt/ppa > /dev/null \
-    && apt-get update > /dev/null \
+    && apt-get -y install --no-install-recommends deluged deluge-web deluge-console > /dev/null \
     && apt-get -y install --no-install-recommends transmission-cli transmission-common transmission-daemon > /dev/null \
     && apt-get -y install --no-install-recommends openvpn > /dev/null \
-    && bash /scripts/install-app.sh \
+    && bash /usr/local/scripts/install-app.sh \
+    && echo "**** cleanup ****" \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
     && useradd -u 1999 -U -s $(which nologin) jedi
 
-ADD ./app/openvpn/ /etc/openvpn/
-ADD ./app/transmission/ /etc/transmission/
+ADD ./app/tmpls /etc/templates
+ADD ./app/openvpn /etc/openvpn
+ADD ./app/transmission /etc/transmission
+ADD ./app/deluge /etc/deluge
 
 ENV CREATE_TUN_DEVICE="true" \
     OPENVPN_USERNAME="NONE" \
     OPENVPN_PASSWORD="NONE" \
-    OPENVPN_PROVIDER="None" \
-    OPENVPN_HOSTNAME="None" \
-    OPENVPN_CONNECTION="None" \
+    OPENVPN_PROVIDER="NONE" \
+    OPENVPN_HOSTNAME="NONE" \
+    OPENVPN_CONNECTION="NONE" \
     OPENVPN_PROTO=udp \
+    TOR_CLIENT_ENABLED=true \
+    TOR_CLIENT=transmission \
+    TOR_CLIENT_RUNAS_ROOT=false \
+    TOR_CLIENT_SETTING_DEFAULT=false \
+    TOR_RPC_PORT=9091 \
+    TOR_WATCH_DIR=/data/watch \
+    TOR_INCOMPLETE_DIR=/data/incomplete \
+    TOR_DOWNLOAD_DIR=/data/completed \
     TRANSMISSION_BIND_ADDRESS_IPV4=0.0.0.0 \
     TRANSMISSION_BIND_ADDRESS_IPV6=:: \
     TRANSMISSION_PEER_PORT=51413 \
@@ -36,22 +52,33 @@ ENV CREATE_TUN_DEVICE="true" \
     TRANSMISSION_RPC_BIND_ADDRESS=0.0.0.0 \
     TRANSMISSION_RPC_USERNAME=username \
     TRANSMISSION_RPC_PASSWORD=password \
-    TRANSMISSION_RPC_PORT=9091 \
     TRANSMISSION_RPC_URL=/transmission/ \
     TRANSMISSION_RPC_WHITELIST=127.0.0.1 \
     TRANSMISSION_HOME=/data/transmission-home \
-    TRANSMISSION_RUNAS_ROOT=false \
     TRANSMISSION_WEB_UI= \
-    TRANSMISSION_SETTING_DEFAULT=false \
+    TRANSMISSION_LOG_LEVEL=info \
+    DELUGE_HOME=/data/deluge-home \
+    DELUGE_AUTH_USERNAME=username \
+    DELUGE_AUTH_PASSWORD=password \
+    DELUGE_LOG_LEVEL=info \
+    DELUGE_LISTEN_INTERFACE=0.0.0.0 \
+    DELUGE_OUTGOING_INTERFACE=0.0.0.0 \
+    DELUGE_INTERFACE=0.0.0.0 \
+    DELUGE_DAEMON_PORT=58846 \
+    DELUGE_PEER_PORT=53242 \
+    DELUGE_PEER_PORT_OUT=55242 \
+    DELUGE_PEER_PORT_RANDOM_HIGH=65535 \
+    DELUGE_PEER_PORT_RANDOM_LOW=45535 \
     LOG_FILE=/data/application.log \
     ENABLE_FILE_LOGGING=true \
     HEALTH_CHECK_HOST=www.google.com \
-    FIREWALL_ENABLED=false
+    FIREWALL_ENABLED=false \
+    FIREWALL_ALLOW_GW_CIDR=false
 
 VOLUME /data
 VOLUME /control
 
-HEALTHCHECK --interval=5m CMD /scripts/health.sh
+HEALTHCHECK --interval=5m CMD /usr/local/scripts/health.sh
 
 EXPOSE 9091
 

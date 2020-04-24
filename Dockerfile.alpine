@@ -1,29 +1,45 @@
 FROM alpine:3.11
 
-ADD ./app/scripts /scripts
+ADD ./app/scripts /usr/local/scripts
 
-RUN echo @testing http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories \
+RUN echo "**** add repositories ****" \
+    && echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories \
+    && echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories \
     && apk update --no-cache > /dev/null \
+    && echo "**** install packages ****" \
     && apk add --no-cache --update tar > /dev/null \
-    && apk add --no-cache bash git curl jq shadow > /dev/null \
+    && apk add --no-cache bash git curl jq shadow net-tools > /dev/null \
     && apk add --no-cache dumb-init > /dev/null \
-    && apk add --no-cache transmission-daemon transmission-cli > /dev/null \
     && apk add --no-cache openvpn > /dev/null \
+    && apk add --no-cache transmission-daemon transmission-cli > /dev/null \
+    && apk add --no-cache boost-python3@edge py3-wheel@edge deluge@testing > /dev/null \
+    && apk add --no-cache deluge@testing > /dev/null \
     && apk add --no-cache ip6tables ufw@testing > /dev/null \
-    && bash /scripts/install-app.sh \
+    && bash /usr/local/scripts/install-app.sh \
+    && echo "**** cleanup ****" \
     && rm -rf /tmp/* /var/tmp/* \
     && useradd -u 1999 -U -s $(which nologin) jedi
 
-ADD ./app/openvpn/ /etc/openvpn/
-ADD ./app/transmission/ /etc/transmission/
+ADD ./app/tmpls /etc/templates
+ADD ./app/openvpn /etc/openvpn
+ADD ./app/transmission /etc/transmission
+ADD ./app/deluge /etc/deluge
 
 ENV CREATE_TUN_DEVICE="true" \
     OPENVPN_USERNAME="NONE" \
     OPENVPN_PASSWORD="NONE" \
-    OPENVPN_PROVIDER="None" \
-    OPENVPN_HOSTNAME="None" \
-    OPENVPN_CONNECTION="None" \
+    OPENVPN_PROVIDER="NONE" \
+    OPENVPN_HOSTNAME="NONE" \
+    OPENVPN_CONNECTION="NONE" \
     OPENVPN_PROTO=udp \
+    TOR_CLIENT_ENABLED=true \
+    TOR_CLIENT=transmission \
+    TOR_CLIENT_RUNAS_ROOT=false \
+    TOR_CLIENT_SETTING_DEFAULT=false \
+    TOR_RPC_PORT=9091 \
+    TOR_WATCH_DIR=/data/watch \
+    TOR_INCOMPLETE_DIR=/data/incomplete \
+    TOR_DOWNLOAD_DIR=/data/completed \
     TRANSMISSION_BIND_ADDRESS_IPV4=0.0.0.0 \
     TRANSMISSION_BIND_ADDRESS_IPV6=:: \
     TRANSMISSION_PEER_PORT=51413 \
@@ -32,22 +48,33 @@ ENV CREATE_TUN_DEVICE="true" \
     TRANSMISSION_RPC_BIND_ADDRESS=0.0.0.0 \
     TRANSMISSION_RPC_USERNAME=username \
     TRANSMISSION_RPC_PASSWORD=password \
-    TRANSMISSION_RPC_PORT=9091 \
     TRANSMISSION_RPC_URL=/transmission/ \
     TRANSMISSION_RPC_WHITELIST=127.0.0.1 \
     TRANSMISSION_HOME=/data/transmission-home \
-    TRANSMISSION_RUNAS_ROOT=false \
     TRANSMISSION_WEB_UI= \
-    TRANSMISSION_SETTING_DEFAULT=false \
+    TRANSMISSION_LOG_LEVEL=info \
+    DELUGE_HOME=/data/deluge-home \
+    DELUGE_AUTH_USERNAME=username \
+    DELUGE_AUTH_PASSWORD=password \
+    DELUGE_LOG_LEVEL=info \
+    DELUGE_LISTEN_INTERFACE=0.0.0.0 \
+    DELUGE_OUTGOING_INTERFACE=0.0.0.0 \
+    DELUGE_INTERFACE=0.0.0.0 \
+    DELUGE_DAEMON_PORT=58846 \
+    DELUGE_PEER_PORT=53242 \
+    DELUGE_PEER_PORT_OUT=55242 \
+    DELUGE_PEER_PORT_RANDOM_HIGH=65535 \
+    DELUGE_PEER_PORT_RANDOM_LOW=45535 \
     LOG_FILE=/data/application.log \
     ENABLE_FILE_LOGGING=true \
     HEALTH_CHECK_HOST=www.google.com \
-    FIREWALL_ENABLED=false
+    FIREWALL_ENABLED=false \
+    FIREWALL_ALLOW_GW_CIDR=false
 
 VOLUME /data
 VOLUME /control
 
-HEALTHCHECK --interval=5m CMD /scripts/health.sh
+HEALTHCHECK --interval=5m CMD /usr/local/scripts/health.sh
 
 EXPOSE 9091
 
