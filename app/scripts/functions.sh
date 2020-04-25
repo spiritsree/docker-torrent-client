@@ -26,13 +26,13 @@ _firewall_allow_port() {
     fi
 }
 
-# Get settings if config exists
+# Populate env vars from json config file if env does not exist
 _get_settings() {
-    local client=$1
+    local prefix=$1
     local settings_file=$2
 
     for setting in $(jq -r 'to_entries | map(.key + "=" + (.value | tostring)) | .[]' "${settings_file}"); do
-        key=$(echo "${client}_${setting%=*}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+        key=$(echo "${prefix}_${setting%=*}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
         value=${setting#*=}
         if [[ -z "$(printf '%s' "${!key}")" ]]; then
             eval "export $key=$value"

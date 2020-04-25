@@ -75,7 +75,7 @@ _get_default_gw
 
 # Reset the env variables from client config
 if [[ "${TOR_CLIENT,,}" == "transmission" ]] && [[ "${TOR_CLIENT_ENABLED,,}" == "true" ]]; then
-    echo "[CLIENT] Selected torrent clinet is transmission..." >> ${LOG_FILE}
+    echo "[CLIENT] Selected torrent client is transmission..." >> ${LOG_FILE}
     if [[ -f "${TRANSMISSION_HOME}/settings.json" ]] && [[ "${TOR_CLIENT_SETTING_DEFAULT,,}" == "false" ]]; then
         echo "[TRANSMISSION] Transmission will preserve the config..." >> ${LOG_FILE}
         _get_settings "transmission" "${TRANSMISSION_HOME}/settings.json"
@@ -84,8 +84,6 @@ if [[ "${TOR_CLIENT,,}" == "transmission" ]] && [[ "${TOR_CLIENT_ENABLED,,}" == 
         dockerize -template "/etc/templates/transmission_settings.tmpl:/tmp/settings.json"
         _get_settings "transmission" "/tmp/settings.json"
     fi
-
-    # [WIP] docker passed var export here
 
     if [[ "${TRANSMISSION_PEER_PORT_RANDOM_ON_START,,}" == "true" ]]; then
         export TOR_PEER_PORT="${TRANSMISSION_PEER_PORT_RANDOM_LOW}:${TRANSMISSION_PEER_PORT_RANDOM_HIGH}"
@@ -100,7 +98,7 @@ if [[ "${TOR_CLIENT,,}" == "transmission" ]] && [[ "${TOR_CLIENT_ENABLED,,}" == 
         fi
     fi
 elif [[ "${TOR_CLIENT,,}" == "deluge" ]] && [[ "${TOR_CLIENT_ENABLED,,}" == "true" ]]; then
-    echo "[CLIENT] Selected torrent clinet is deluge..." >> ${LOG_FILE}
+    echo "[CLIENT] Selected torrent client is deluge..." >> ${LOG_FILE}
     if [[ -f "${DELUGE_HOME}/core.conf" ]] && [[ "${TOR_CLIENT_SETTING_DEFAULT,,}" == "false" ]]; then
         echo "[DELUGE] Deluge will preserve the config..." >> ${LOG_FILE}
         _get_settings "deluge" "${DELUGE_HOME}/core.conf"
@@ -112,8 +110,6 @@ elif [[ "${TOR_CLIENT,,}" == "deluge" ]] && [[ "${TOR_CLIENT_ENABLED,,}" == "tru
         _get_settings "deluge" "/tmp/core.conf"
         _get_settings "deluge" "/tmp/web.conf"
     fi
-
-    # [WIP] docker passed var export here
 
     if [[ "${DELUGE_RANDOM_PORT,,}" == "true" ]]; then
         export DELUGE_PEER_LISTEN_PORTS="${DELUGE_PEER_PORT_RANDOM_LOW},${DELUGE_PEER_PORT_RANDOM_HIGH}"
@@ -139,7 +135,6 @@ elif [[ "${TOR_CLIENT,,}" == "deluge" ]] && [[ "${TOR_CLIENT_ENABLED,,}" == "tru
             export FIREWALL_PORTS_TO_ALLOW="${DELUGE_DAEMON_PORT}"
         fi
     fi
-
 fi
 
 # Enable firewall

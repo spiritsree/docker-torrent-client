@@ -39,6 +39,9 @@ export DELUGE_PWD_SHA1
 
 echo "${DELUGE_AUTH_USERNAME}:${DELUGE_AUTH_PASSWORD}:10" > "${DELUGE_HOME}/auth"
 
+# host_id is generated with
+# python3 -S -c "import uuid; print(uuid.uuid4().hex)"
+
 echo "[DELUGE] Generating deluge configs from env..."
 dockerize -template "/etc/templates/deluge_core.tmpl:${DELUGE_HOME}/core.conf"
 dockerize -template "/etc/templates/deluge_web.tmpl:${DELUGE_HOME}/web.conf"
@@ -46,19 +49,15 @@ dockerize -template "/etc/templates/deluge_hostlist.tmpl:${DELUGE_HOME}/hostlist
 
 _perm_update "${DELUGE_HOME}" "${TOR_CLIENT_USER}"
 
-if [[ "${ENABLE_FILE_LOGGING}" == "false" ]]; then
-    export DELUGE_OPTS="-c ${DELUGE_HOME} -L ${DELUGE_LOG_LEVEL}"
-else
-    export DELUGE_OPTS="-c ${DELUGE_HOME} -L ${DELUGE_LOG_LEVEL} -l ${LOG_FILE}"
-fi
+export DELUGE_OPTS="-c ${DELUGE_HOME} -L ${DELUGE_LOG_LEVEL}"
 
 echo "[DELUGE] Deluge will run as \"${TOR_CLIENT_USER}\" with UID \"${TOR_CLIENT_UID}\" and GID \"${TOR_CLIENT_GID}\""
 echo "[DELUGE] Starting deluge daemon..."
 exec su -p "${TOR_CLIENT_USER}" -s /bin/bash -c "/usr/bin/deluged ${DELUGE_OPTS}" &
-echo "[DELUGE] Starting deluge web..."
 while [[ $(netstat -lnt | grep "[L]ISTEN" | grep -c ":${DELUGE_DAEMON_PORT}") -eq 0 ]]; do
     sleep 0.1
 done
+echo "[DELUGE] Starting deluge web..."
 exec su -p "${TOR_CLIENT_USER}" -s /bin/bash -c "/usr/bin/deluge-web ${DELUGE_OPTS}" &
 
 echo "[DELUGE] Deluge startup completed..."
