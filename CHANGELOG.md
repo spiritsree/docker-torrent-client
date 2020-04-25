@@ -4,11 +4,11 @@
 
 * Optional flag TOR_CLIENT_ENABLED to disable torrent client run
 * Override default flag changed to TOR_CLIENT_SETTING_DEFAULT
-* Documentation and docker-compose examples
 * Deluge torrent client support
 * Optional flag FIREWALL_PORTS_TO_ALLOW to pass comma separated ports to allow in firewall (Useful when using DELUGE_ALLOW_REMOTE)
-* RPC flag changed to TOR_RPC_PORT to support multiple clients
+* RPC port flag changed to TOR_RPC_PORT to support multiple clients
 * Option to enable client debug logs
+* Documentation and docker-compose examples
 
 **Bug Fixes**
 
