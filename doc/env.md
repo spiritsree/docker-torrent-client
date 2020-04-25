@@ -11,6 +11,14 @@ Variable | Description | Default |
 `ENABLE_FILE_LOGGING` | `true` enables logging to file, `false` will use docker logs | `true` |
 `HEALTH_CHECK_HOST` | Docker health check host | `www.google.com` |
 `LOCAL_NETWORK` | Local network if you need access from local (comma separated list) | |
+`TOR_CLIENT_ENABLED` | Enable torrent client run | `true` |
+`TOR_CLIENT` | Torrent client to use (`transmission`, `deluge`) | `transmission` |
+`TOR_CLIENT_RUNAS_ROOT` | Run torrent client as root user | `false` |
+`TOR_CLIENT_SETTING_DEFAULT` | Use the default config | `false` |
+`TOR_WATCH_DIR` | Directory to watch for torrent files and add them to torrent client | `/data/watch` |
+`TOR_DOWNLOAD_DIR` | Directory for completed torrents | `/data/completed` |
+`TOR_INCOMPLETE_DIR` | Directory for ongoing torrents | `/data/incomplete` |
+`TOR_RPC_PORT` | Torrent client web port | `9091` |
 
 ## OpenVPN
 
@@ -53,15 +61,12 @@ Variable | Description | Default |
 `TRANSMISSION_UPLOAD_SLOTS_PER_TORRENT` | Number of upload slots (peers connection) per torrent | `14` |
 `TRANSMISSION_BLOCKLIST_URL` | Blocklist url | `http://www.example.com/blocklist` |
 `TRANSMISSION_BLOCKLIST_ENABLED` | Enable blocklist | `false` |
-`TRANSMISSION_DOWNLOAD_DIR` | Directory for completed torrents | `/data/completed` |
-`TRANSMISSION_INCOMPLETE_DIR` | Directory for ongoing torrents | `/data/incomplete` |
 `TRANSMISSION_INCOMPLETE_DIR_ENABLED` | Enable incomplete directory use | `true` |
 `TRANSMISSION_PREALLOCATION` | 0 = Off, 1 = Fast, 2 = Full (slower but reduces disk fragmentation) | `1` |
 `TRANSMISSION_RENAME_PARTIAL_FILES` | Postfix partially downloaded files with ".part" | `true` |
 `TRANSMISSION_START_ADDED_TORRENTS` | Start torrents as soon as they are added | `true` |
 `TRANSMISSION_TRASH_ORIGINAL_TORRENT_FILES` | Delete torrents added from the watch directory | `false` |
 `TRANSMISSION_UMASK` | Sets transmission's file mode creation mask | `2` |
-`TRANSMISSION_WATCH_DIR` | Directory to watch for torrent files and add them to transmission | `/data/watch` |
 `TRANSMISSION_WATCH_DIR_ENABLED` | Enable watch directory | `true` |
 `TRANSMISSION_CACHE_SIZE_MB` | Transmission's memory cache in MB | `4` |
 `TRANSMISSION_DHT_ENABLED` | Enable distribution hash table | `true` |
@@ -99,7 +104,6 @@ Variable | Description | Default |
 `TRANSMISSION_RPC_HOST_WHITELIST` | Host whitelist domains or IPs | |
 `TRANSMISSION_RPC_HOST_WHITELIST_ENABLED` | Enable host whitelisting | `true` |
 `TRANSMISSION_RPC_PASSWORD` | RPC password | `password` |
-`TRANSMISSION_RPC_PORT` | RPC port | `9091` |
 `TRANSMISSION_RPC_URL` | RPC url | `/transmission/` |
 `TRANSMISSION_RPC_USERNAME` | RPC username | `username` |
 `TRANSMISSION_RPC_WHITELIST` | RPC whitelist IPs (comma-separated) | `127.0.0.1` |
@@ -113,9 +117,142 @@ Variable | Description | Default |
 `TRANSMISSION_RATIO_LIMIT` | Ratio limit default 2.0 | `2` |
 `TRANSMISSION_RATIO_LIMIT_ENABLED` | Enable ratio limit | `false` |
 `TRANSMISSION_HOME` | Home dir for transmission to store the state | `/data/transmission-home` |
-`TRANSMISSION_RUNAS_ROOT` | Run transmission as root user | `false` |
 `TRANSMISSION_WEB_UI` | Custom web UI (`combustion` or `transmission-web-control`) | |
-`TRANSMISSION_SETTING_DEFAULT` | Use the default config | `false` |
+`TRANSMISSION_LOG_LEVEL` | Transmission client log level (`info` or `debug`) | `info` |
+
+## Deluge
+
+All these are set in the config directly with default during the intial run. The ENV passed during docker run will have the precedence. If not set, the value will get constructed from the config file (if previous config exists).
+
+**General**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
+`DELUGE_HOME` | Home dir for deluge to store the state | `/data/deluge-home` |
+`DELUGE_GEOIP_DB_LOCATION` | Geo IP DB location  | `/usr/share/GeoIP/GeoIP.dat` |
+`DELUGE_AUTH_USERNAME` | Deluge client auth user | `username` |
+`DELUGE_AUTH_PASSWORD` | Deluge client auth password | `password` |
+`DELUGE_LOG_LEVEL` | Deluge log level (`none`, `critical`, `error`, `warning`, `info`, `debug`) | `info` |
+
+**Downloads**
+
+The download paths will be controlled by `TOR_CLIENT_` vars.
+
+Variable | Description | Default |
+:--------|:------------|:--------|
+`DELUGE_MOVE_COMPLETED` | Enable move completed torrents to completed dir | `true` |
+`DELUGE_COPY_TORRENT_FILE` | Enable copying of .torrent files to watch folder | `true` |
+`DELUGE_DEL_COPY_TORRENT_FILE` | Delete torrent file after copying | `false` |
+`DELUGE_PRIORITIZE_FIRST_LAST_PIECES` | Enable prioritizing first and last pieces of torrent | `false` |
+`DELUGE_SEQUENTIAL_DOWNLOAD` | Enable sequential download | `false` |
+`DELUGE_ADD_PAUSED` | Enable adding torrents in Paused state | `false` |
+`DELUGE_PRE_ALLOCATE_STORAGE` | Enable pre-allocation of disk space | `false` |
+
+**Network**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
+`DELUGE_LISTEN_INTERFACE` | Deluge daemon listen on | `0.0.0.0` |
+`DELUGE_RANDOM_PORT` | Use random ports for incoming | `false` |
+`DELUGE_PEER_PORT_RANDOM_HIGH` | Upper limit of port to choose from if `DELUGE_RANDOM_PORT` is  `true` | `65535` |
+`DELUGE_PEER_PORT_RANDOM_LOW` | Lower limit of port to choose from if `DELUGE_RANDOM_PORT` is  `true` | `45535` |
+`DELUGE_PEER_PORT` | Port to listen to if `DELUGE_RANDOM_PORT` is `false` | `53242` |
+`DELUGE_LISTEN_REUSE_PORT` | Reuse port | `true` |
+`DELUGE_LISTEN_USE_SYS_PORT` | Use system port | `false` |
+`DELUGE_OUTGOING_INTERFACE` | Network interface name or IP address for outgoing BitTorrent connections | `0.0.0.0` |
+`DELUGE_RANDOM_OUTGOING_PORTS` | Use random ports for outgoing | `true` |
+`DELUGE_PEER_PORT_OUT` | Outgoing port if `DELUGE_RANDOM_OUTGOING_PORTS` is `false` | `55242` |
+`DELUGE_UPNP` | Enable UPnP | `true` |
+`DELUGE_NATPMP` | Enable NAT-PMP | `true` |
+`DELUGE_UTPEX` | Enable Peer Exchange | `true` |
+`DELUGE_LSD` | Enable LSD | `true` |
+`DELUGE_DHT` | Enable DHT | `true` |
+`DELUGE_PEER_TOS` | Peer TOS (Type Of Service) byte (Masks: Normal Service 0x00, Minimize Cost 0x02, Maximize Reliability 0x04, Maximize Throughput 0x08, Minimize-delay 0x10) | `0x00` |
+
+**Encryption**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
+`DELUGE_ENC_IN_POLICY` | Enable inbound encryption (0 - forced, 1 - enables, 2 - disabled) | `1` |
+`DELUGE_ENC_OUT_POLICY` | Enable outbound encryption (0 - forced, 1 - enables, 2 - disabled) | `1` |
+`DELUGE_ENC_LEVEL` |  Encrypt entire stream (0 - Handshake, 1 - Full Stream, 2 - Either) | `2` |
+
+**Bandwidth**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
+`DELUGE_MAX_CONNECTIONS_GLOBAL` | Maximum connections | `200` |
+`DELUGE_MAX_UPLOAD_SLOTS_GLOBAL` | Maximum upload slot | `4` |
+`DELUGE_MAX_DOWNLOAD_SPEED` | Maximum download speed (KiB/s) | `-1.0` |
+`DELUGE_MAX_UPLOAD_SPEED` | Maximum upload speed (KiB/s) | `-1` |
+`DELUGE_MAX_HALF_OPEN_CONNECTIONS` | Maximum half open connections | `50` |
+`DELUGE_MAX_CONNECTIONS_PER_SECOND` | Maximum connection attempts per second | `20` |
+`DELUGE_IGNORE_LIMITS_ON_LOCAL_NETWORK` | Ignore limits on local network | `true` |
+`DELUGE_RATE_LIMIT_IP_OVERHEAD` | Rate limit IP overhead | `true` |
+`DELUGE_MAX_CONNECTIONS_PER_TORRENT` | Maximum connections per torrent | `-1` |
+`DELUGE_MAX_UPLOAD_SLOTS_PER_TORRENT` | Maximum upload slot per torrent | `-1` |
+`DELUGE_MAX_DOWNLOAD_SPEED_PER_TORRENT` | Maximum download speed (KiB/s) per torrent | `-1` |
+`DELUGE_MAX_UPLOAD_SPEED_PER_TORRENT` | Maximum upload speed (KiB/s) per torrent | `-1` |
+
+**Interface (Web UI)**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
+`DELUGE_SHOW_SESSION_SPEED` | Show session speed in titlebar | `false` |
+`DELUGE_SIDEBAR_SHOW_ZERO` | Show filters with zero torrents | `false` |
+`DELUGE_SIDEBAR_MULTIPLE_FILTERS` | ALlow the use of multiple filters at once | `true` |
+`DELUGE_SHOW_SIDEBAR` | Display sidebar in UI | `true` |
+`DELUGE_LANGUAGE` | UI language | `System Default` |
+`DELUGE_SESSION_TIMEOUT` | Web session timeout | `3600` |
+`DELUGE_INTERFACE` | Where to listen for web connections | `0.0.0.0` |
+`DELUGE_HTTPS` | Enable ssl | `false` |
+`DELUGE_THEME` | Deluge web theme | `gray` |
+`DELUGE_PWD_SALT` | Salt string for password encoding | `2ce1a410bcdcc53064129b6d950f2e9fee4edc1e` |
+
+**Daemon**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
+`DELUGE_DAEMON_PORT` | Daemon port | `58846` |
+`DELUGE_ALLOW_REMOTE` | Allow remote connections | `false` |
+
+**Queue**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
+`DELUGE_QUEUE_NEW_TO_TOP` | Queue new torrents to top  | `false` |
+`DELUGE_MAX_ACTIVE_LIMIT` | Total active torrents limit | `10` |
+`DELUGE_MAX_ACTIVE_DOWNLOADING` | Total active torrents downloading | `5` |
+`DELUGE_MAX_ACTIVE_SEEDING` | Total active torrents seeding | `7` |
+`DELUGE_DONT_COUNT_SLOW_TORRENTS` | Ignore slow torrents  | `false` |
+`DELUGE_AUTO_MANAGE_PREFER_SEEDS` | Prefer seeding torrents | `false` |
+`DELUGE_SHARE_RATIO_LIMIT` | Share ratio limit (for seeding rotation) | `2.0` |
+`DELUGE_SEED_TIME_RATIO_LIMIT` | Speed time ratio (for seeding rotation) | `7.0` |
+`DELUGE_SEED_TIME_LIMIT` | Speed time limit (m) (for seeding rotation) | `180` |
+`DELUGE_STOP_SEED_AT_RATIO` | Enable share ratio reached when reaches `DELUGE_STOP_SEED_RATIO`. if enabled `true` default action is to `pause torrent` unless `DELUGE_REMOVE_SEED_AT_RATIO` is `true` | `false` |
+`DELUGE_STOP_SEED_RATIO` | Share ratio limit | `2.0` |
+`DELUGE_REMOVE_SEED_AT_RATIO` | Remove torrent when share ratio reches `DELUGE_STOP_SEED_RATIO` | `false` |
+`DELUGE_AUTO_MANAGED` | Torrents will obey queue settings | `true` |
+`DELUGE_SUPER_SEEDING` | Enable super seeding | `false` |
+
+**Proxy**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
+
+
+**Cache**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
+`DELUGE_CACHE_SIZE` | Cache size (in 16 KiB blocks) | `512` |
+`DELUGE_CACHE_EXPIRY` | Cache expiry in seconds | `60` |
+
+**Plugins**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
+`DELUGE_ENABLED_PLUGINS` | Comma separated list on enabled plugins | |
 
 ## Firewall
 
@@ -124,3 +261,5 @@ Environment variables used for firewall config.
 Variable | Description | Default |
 :--------|:------------|:--------|
 `FIREWALL_ENABLED` | Enables firewall | `false` |
+`FIREWALL_ALLOW_GW_CIDR` | Add rules for Gateway network CIDR | `false` |
+`FIREWALL_PORTS_TO_ALLOW` | Ports to allow in firewall (comma separated) | |

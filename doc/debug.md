@@ -7,7 +7,7 @@ For any issues within the docker container, you can connect to the running conta
 ```
 $ docker ps
 CONTAINER ID        IMAGE                                 COMMAND                  CREATED              STATUS                                 PORTS                    NAMES
-c29ee56a1560        docker-torrent-client-ubuntu:latest   "dumb-init /etc/open…"   About a minute ago   Up About a minute (health: starting)   0.0.0.0:9091->9091/tcp   affectionate_banach
+c29ee56a1560        docker-torrent-client:latest-ubuntu   "dumb-init /etc/open…"   About a minute ago   Up About a minute (health: starting)   0.0.0.0:9091->9091/tcp   affectionate_banach
 ```
 * Exec into the container with command bash (You will get a bash shell of the container)
 
@@ -31,7 +31,11 @@ $ docker exec -ti c29ee56a1560 bash
 
 ```
 $ dig +short myip.opendns.com @resolver1.opendns.com
-$ curl http://wtfismyip.com/text
+$ curl ifconfig.me
+$ curl icanhazip.com
+$ curl ipecho.net/plain
+$ curl wtfismyip.com/text
+$ curl ifconfig.co
 ```
 
 or if you need more details
