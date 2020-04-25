@@ -14,23 +14,23 @@ mkdir -p "${TMP_DIR}"
 pushd "${TMP_DIR}" > /dev/null || exit 1
 
 # Installing dockerize
-echo "Installing dockerize..."
+echo "**** install dockerize ****"
 curl -sL "${DOCKERIZE_IMAGE_URL}" 2> /dev/null | tar -C /usr/local/bin -xz
 
 mkdir -p "${TR_WEB_HOME}"
 
-echo "Installing Combustion UI..."
+echo "**** install Combustion UI ****"
 curl -sL "${COMBUSTION_IMAGE_URL}" -o combustion.tar.gz 2> /dev/null
 tar xzf combustion.tar.gz --transform='s/^combustion-release/combustion/' -C "${TR_WEB_HOME}"
 
-echo "Installing Transmission Web Control UI..."
+echo "**** install Transmission Web Control UI ****"
 curl -sL "${TR_WEB_CONTROL_IMAGE_URL}" -o transmission-web-control.tar.gz 2> /dev/null
 tar xzf transmission-web-control.tar.gz --transform='s/^transmission-web-control-master\/src/transmission-web-control/'
 mv ./transmission-web-control "${TR_WEB_HOME}/"
 
 # When using Transmission Web Control UI, it gives control to switch UI to original
 # This will be broken if the below symlinks are missing
-echo "Fixing original UI when using Transmission Web Control UI..."
+echo "**** fixing original UI when using Transmission Web Control UI ****"
 ln -s "${TR_DEFAULT_WEB_HOME}/style" "${TR_WEB_HOME}/transmission-web-control/style"
 ln -s "${TR_DEFAULT_WEB_HOME}/images" "${TR_WEB_HOME}/transmission-web-control/images"
 ln -s "${TR_DEFAULT_WEB_HOME}/javascript" "${TR_WEB_HOME}/transmission-web-control/javascript"

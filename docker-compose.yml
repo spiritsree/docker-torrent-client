@@ -1,0 +1,32 @@
+# supported docker-compose version 1.25.5
+version: "3.8"
+services:
+  torrent-client:
+    container_name: docker_torrent_client
+    image: spiritsree/docker-torrent-client:latest-alpine
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "9091:9091"
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+    volumes:
+      - /local/data:/data
+    environment:
+      OPENVPN_PROVIDER: HideMe
+      OPENVPN_CONNECTION: 'free-ca.hide.me:udp'
+      # these will be picked up from host env vars
+      OPENVPN_USERNAME:
+      OPENVPN_PASSWORD:
+      LOCAL_NETWORK: 192.168.1.0/24
+    restart: on-failure
+    # Below are only for swarm deploy. Ignored for docker-compose up
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3

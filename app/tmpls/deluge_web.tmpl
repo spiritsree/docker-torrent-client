@@ -1,0 +1,24 @@
+{
+    "file": 2,
+    "format": 1
+}{
+    "base": "/",
+    "cert": "ssl/daemon.cert",
+    "default_daemon": "bd22c67dd636483a967aa7488137f334",
+    "enabled_plugins": [],
+    "first_login": false,
+    "https": {{ lower (default .Env.DELUGE_HTTPS "false") }},
+    "interface": "{{ default .Env.DELUGE_INTERFACE "0.0.0.0" }}",
+    "language": "{{ default .Env.DELUGE_LANGUAGE "" }}",
+    "pkey": "ssl/daemon.pkey",
+    "port": {{ default .Env.TOR_RPC_PORT "9091" }},
+    "pwd_salt": "{{ default .Env.DELUGE_PWD_SALT "c26ab3bbd8b137f99cd83c2c1c0963bcc1a35cad" }}",
+    "pwd_sha1": "{{ default .Env.DELUGE_PWD_SHA1 "8af1c1b140b02ad3cf5318017906fa8605ead31c" }}",
+    "session_timeout": {{ default .Env.DELUGE_SESSION_TIMEOUT "3600" }},
+    "sessions": {},
+    "show_session_speed": {{ lower (default .Env.DELUGE_SHOW_SESSION_SPEED "false") }},
+    "show_sidebar": {{ lower (default .Env.DELUGE_SHOW_SIDEBAR "true") }},
+    "sidebar_multiple_filters": {{ lower (default .Env.DELUGE_SIDEBAR_MULTIPLE_FILTERS "true") }},
+    "sidebar_show_zero": {{ lower (default .Env.DELUGE_SIDEBAR_SHOW_ZERO "false") }},
+    "theme": "{{ default .Env.DELUGE_THEME "gray" }}"
+}
