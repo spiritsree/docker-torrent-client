@@ -20,7 +20,7 @@ ARG_PROVIDER=''
 ARG_LOCAL='false'
 ARG_PROTO='UDP'
 ARG_IMAGE='spiritsree/docker-torrent-client:latest-ubuntu'
-OPENVPN_SERVERS="${BASEDIR}/app/openvpn/vpn_servers.json"
+OPENVPN_SERVERS="${BASEDIR}/app/tmpls/openvpn/vpn_servers.json"
 
 # Highlight the message
 _highlight_msg() {

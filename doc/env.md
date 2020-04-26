@@ -239,7 +239,16 @@ Variable | Description | Default |
 
 Variable | Description | Default |
 :--------|:------------|:--------|
-
+`DELUGE_PROXY_ANONYMOUS_MODE` | Proxy anonymous mode | `false` |
+`DELUGE_PROXY_FORCE_PROXY` | Force proxy connection | `false` |
+`DELUGE_PROXY_HOSTNAME` | Proxy hostname to user | |
+`DELUGE_PROXY_PORT` | Proxy port | `8080` |
+`DELUGE_PROXY_USERNAME` | Proxy username | |
+`DELUGE_PROXY_PASSWORD` | Proxy password | |
+`DELUGE_PROXY_PROXY_HOSTNAMES` | Proxying proxy hostnames | `true` |
+`DELUGE_PROXY_PROXY_PEER_CONNECTIONS` | Proxying peer connections | `true` |
+`DELUGE_PROXY_PROXY_TRACKER_CONNECTIONS` | Proxying tracker conenctions | `true` |
+`DELUGE_PROXY_TYPE` | Proxy type | `0` |
 
 **Cache**
 

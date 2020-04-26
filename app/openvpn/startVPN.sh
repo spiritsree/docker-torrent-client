@@ -7,7 +7,8 @@ source /usr/local/scripts/functions.sh
 # https://www.tldp.org/LDP/abs/html/abs-guide.html#CASEMODPARAMSUB
 VPN_PROVIDER="${OPENVPN_PROVIDER,,}"
 
-export VPN_CONFIG="/etc/openvpn/${VPN_PROVIDER}"
+export OPENVPN_CONFIG="/etc/openvpn/"
+export OPENVPN_TEMPLATE="/etc/templates/openvpn/${VPN_PROVIDER}"
 
 if [[ "${ENABLE_FILE_LOGGING}" == "false" ]]; then
     export LOG_FILE="/proc/self/fd/1"
@@ -24,10 +25,12 @@ fi
 
 # Exit if OpenVPN Provider or Config doesn't exist
 if [[ "${OPENVPN_PROVIDER}" == "NONE" ]] || [[ -z "${OPENVPN_PROVIDER-}" ]]; then
-    echo "[OPENVPN} OPENVPN_PROVIDER not set. Exiting." >> ${LOG_FILE}
+    echo "[OPENVPN] OPENVPN_PROVIDER not set..." >> ${LOG_FILE}
+    echo "[OPENVPN] Exiting..." >> ${LOG_FILE}
     exit 1
-elif [[ ! -d "${VPN_CONFIG}" ]]; then
+elif [[ ! -d "${OPENVPN_TEMPLATE}" ]]; then
     echo "[OPENVPN] Config doesn't exist for provider: ${OPENVPN_PROVIDER}" >> ${LOG_FILE}
+    echo "[OPENVPN] Exiting..." >> ${LOG_FILE}
     exit 1
 fi
 
@@ -37,6 +40,7 @@ echo "[OPENVPN] Using OpenVPN provider ${OPENVPN_PROVIDER}" >> ${LOG_FILE}
 if [[ "${OPENVPN_USERNAME}" == "NONE" ]] || [[ "${OPENVPN_PASSWORD}" == "NONE" ]] ; then
     if [[ ! -f /control/ovpn-auth.txt ]] ; then
         echo "[OPENVPN] OpenVPN username and password empty..." >> ${LOG_FILE}
+        echo "[OPENVPN] Exiting..." >> ${LOG_FILE}
         exit 1
     fi
     echo "[OPENVPN] OPENVPN credentials found in /control/ovpn-auth.txt ..." >> ${LOG_FILE}
@@ -48,9 +52,14 @@ else
 fi
 
 if [[ "${OPENVPN_HOSTNAME}" == "NONE" ]] || [[ -z "${OPENVPN_HOSTNAME}" ]]; then
-    echo "[OPENVPN] OPENVPN_HOSTNAME not set. Using OPENVPN_CONNECTION instead..." >> ${LOG_FILE}
+    echo "[OPENVPN] OPENVPN_HOSTNAME not set..." >> ${LOG_FILE}
+    echo "[OPENVPN] Checking OPENVPN_CONNECTION instead..." >> ${LOG_FILE}
     if [[ "${OPENVPN_CONNECTION}" == "NONE" ]] || [[ -z "${OPENVPN_CONNECTION}" ]]; then
-        echo "[OPENVPN] OPENVPN_PROVIDER not set. Exiting." >> ${LOG_FILE}
+        {
+        echo "[OPENVPN] Both OPENVPN_HOSTNAME and OPENVPN_CONNECTION not set..."
+        echo "[OPENVPN] Either one of the setting is required..."
+        echo "[OPENVPN] Exiting..."
+        } >> ${LOG_FILE}
         exit 1
     else
         OPENVPN_HOSTNAME="${OPENVPN_CONNECTION%%:*}"
@@ -58,14 +67,14 @@ if [[ "${OPENVPN_HOSTNAME}" == "NONE" ]] || [[ -z "${OPENVPN_HOSTNAME}" ]]; then
     fi
 fi
 
-vpn_config_template="${VPN_CONFIG}/${OPENVPN_PROTO}/default.ovpn.tmpl"
+ovpn_template="${OPENVPN_TEMPLATE}/${OPENVPN_PROTO}/default.ovpn.tmpl"
 
 # Expand the OpenVPN Config
-if [[ -f "${vpn_config_template}" ]]; then
-    echo "[OPENVPN] Expanding template ${vpn_config_template}..." >> ${LOG_FILE}
-    dockerize -template "${vpn_config_template}:${VPN_CONFIG}/default.ovpn"
+if [[ -f "${ovpn_template}" ]]; then
+    echo "[OPENVPN] Expanding template ${ovpn_template}..." >> ${LOG_FILE}
+    dockerize -template "${ovpn_template}:${OPENVPN_CONFIG}/default.ovpn"
 else
-    echo "[OPENVPN] Template ${vpn_config_template} not found..." >> ${LOG_FILE}
+    echo "[OPENVPN] Template ${ovpn_template} not found..." >> ${LOG_FILE}
     echo "[OPENVPN] Protocol may not be supported..." >> ${LOG_FILE}
     exit 1
 fi
@@ -227,4 +236,4 @@ TOR_CONTROL_OPTS="--script-security 2 --up-delay --up /etc/openvpn/startTorrent.
 # start openvpn
 # https://openvpn.net/community-resources/reference-manual-for-openvpn-2-4/
 # shellcheck disable=SC2086
-exec openvpn ${TOR_CONTROL_OPTS} ${OPENVPN_OPTS} --config "${VPN_CONFIG}/default.ovpn" --suppress-timestamps --log-append ${LOG_FILE}
+exec openvpn ${TOR_CONTROL_OPTS} ${OPENVPN_OPTS} --config "${OPENVPN_CONFIG}/default.ovpn" --suppress-timestamps --log-append ${LOG_FILE}
