@@ -1,5 +1,8 @@
 .DS_Store
 .git
+.github
+.circleci
+doc
 .gitignore
 .idea
 *.swp
@@ -7,4 +10,7 @@ temp*
 */temp*
 */*/temp*
 *.md
+*.yml
+*.yaml
 logs
+config-updater
