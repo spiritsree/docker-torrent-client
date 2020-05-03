@@ -63,7 +63,7 @@ _usage() {
     echo 'Optional Arguments (O_ARGS):'
     echo '    -h|--help                   Print usage'
     echo '    -o|--os <ubuntu|alpine>     OS type, Default: ubuntu'
-    echo "    -d|--data-dir <local-dir>   Local dir to mount for data (This should be added in Docker File Sharing Default: ${LOCAL_DATA_DIR})"
+    echo "    -d|--data-dir <local-dir>   Local dir to mount for data (This should be added in Docker File Sharing)"
     echo '    -l|--local                  Build docker image locally'
     echo '    -i|--image <docker-image>   Docker Image (Default: spiritsree/docker-torrent-client:latest-ubuntu)'
     echo '    --proto <UDP|TCP>           VPN connection proto UDP or TCP (Default: UDP)'
@@ -72,7 +72,7 @@ _usage() {
     echo '    --vpn-type                  Recomment based on Server Type (only for NordVPN if --no-recomment)'
     echo
     echo 'Examples:'
-    echo "    ${SCRIPT_NAME}" -v
+    echo "    ${SCRIPT_NAME} -h"
     echo "    ${SCRIPT_NAME} -u user -p password -v HideMe -i spiritsree/docker-torrent-client:latest-ubuntu"
     echo "    ${SCRIPT_NAME} -u user -p password -v FastestVPN --proto tcp"
     echo

@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.4.0
+
+* Improvements to the tor client config reader and exporting
+* Deluge plugin support using DELUGE_ENABLED_PLUGINS
+* Deluge proxy config support
+* New VPN Provider support - HideMyAss and NordVPN
+* Config Updater helper program
+
 ## Version 0.3.0
 
 * Optional flag TOR_CLIENT_ENABLED to disable torrent client run

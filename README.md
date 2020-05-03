@@ -42,16 +42,19 @@ Mandatory Arguments (M_ARGS):
     -v|--vpn-provider <vpn-provider>  VPN Provider (e.g: HideMe)
 
 Optional Arguments (O_ARGS):
-    -h|--help                     Print usage
-    -o|--os <ubuntu|alpine>       OS type, Default: ubuntu
-    -d|--data-dir <local-dir>     Local dir to mount for data (This should be added in Docker File Sharing Default: ~/Downloads/uTorrent/data/)
-    -l|--local                    Build docker image locally
-    -i|--image <docker-image>     Docker Image (Default: spiritsree/docker-torrent-client:latest-ubuntu)
-    --proto <UDP|TCP>             VPN connection proto UDP or TCP
+    -h|--help                   Print usage
+    -o|--os <ubuntu|alpine>     OS type, Default: ubuntu
+    -d|--data-dir <local-dir>   Local dir to mount for data (This should be added in Docker File Sharing)
+    -l|--local                  Build docker image locally
+    -i|--image <docker-image>   Docker Image (Default: spiritsree/docker-torrent-client:latest-ubuntu)
+    --proto <UDP|TCP>           VPN connection proto UDP or TCP (Default: UDP)
+    -r|--no-recomment           Do not recomment best server (only for NordVPN. Need to provide a filter to search on)
+    --vpn-country               Recomment based on country (only for NordVPN if --no-recomment)
+    --vpn-type                  Recomment based on Server Type (only for NordVPN if --no-recomment)
 
 Examples:
     setup.sh -h
-    setup.sh -u user -p password -v HideMe -i spiritsree/docker-torrent-client:latest-alpine
+    setup.sh -u user -p password -v HideMe -i spiritsree/docker-torrent-client:latest-ubuntu
     setup.sh -u user -p password -v FastestVPN --proto tcp
 ```
 
