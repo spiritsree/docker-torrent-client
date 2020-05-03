@@ -10,7 +10,7 @@ _lowercase() {
 
 # Get mounted template path
 _get_template_path() {
-    local mount_dir="/config"
+    local mount_dir="/repo"
     local config_files openvpn_dir
     config_files=$(find "${mount_dir}" -type f -name "vpn_servers.json")
     openvpn_dir=$(dirname "${config_files}")
@@ -63,22 +63,43 @@ _update_config() {
         if [[ ! -f "default.ovpn.tmpl" ]]; then
             cp "${file}" default.ovpn.tmpl
         fi
-        if ! diff -q -B -b -Z  default.ovpn.tmpl "${file}" > /dev/null; then
+        if ! diff -q -B -b -Z <(grep -vE '^\s*(#|$)' default.ovpn.tmpl) <(grep -vE '^\s*(#|$)' "${file}") > /dev/null; then
             status="fail"
         fi
     done
     if [[ "${status}" == "success" ]]; then
+        if [[ "${vpn_provider}" == "nordvpn" ]]; then
+            sed -i 's/ping 15/inactive 3600\nping 10/g' default.ovpn.tmpl
+            sed -i 's/ping-restart 0/ping-exit 60/g' default.ovpn.tmpl
+            sed -i 's/ping-timer-rem//g' default.ovpn.tmpl
+        fi
         mv default.ovpn.tmpl "${parent_config_path}/${vpn_provider}/${proto}/default.ovpn.tmpl"
     fi
     popd > /dev/null || exit
 }
 
+# preparing for config update
+_pre_config_update() {
+    local vpn_provider=$1
+    local target_dir=$2
+
+    pushd "${target_dir}" > /dev/null || exit
+    pushd tcp > /dev/null || exit
+    _update_config "$(pwd)" "${vpn_provider}" 'tcp'
+    popd > /dev/null || exit
+    pushd udp > /dev/null || exit
+    _update_config "$(pwd)" "${vpn_provider}" 'udp'
+    popd > /dev/null || exit
+    popd > /dev/null || exit
+}
+
 # Get HideMyAss Config and update
 _update_hidemyass_config() {
-    echo "Getting HideMyAss configs..."
-    local config_uri=$1
-    local tmp_dir ovpn_files target_dir config_domain
-    config_domain=$(echo "${config_uri}" | awk -F'/' '{ print $3 }')
+    local vpn_provider=$1
+    local config_url=$2
+    local tmp_dir ovpn_files target_dir config_domain file_name proto_dir
+    echo "Getting HideMyAss configs ${config_url}..."
+    config_domain=$(echo "${config_url}" | awk -F'/' '{ print $3 }')
     tmp_dir=$(mktemp -d /tmp/vpn.XXXXXXXX)
     target_dir=$(mktemp -d /tmp/target.XXXXXXXX)
     mkdir "${target_dir}"/{tcp,udp}
@@ -95,7 +116,7 @@ _update_hidemyass_config() {
         --domains vpn.hidemyass.com \
         --no-parent \
         --no-host-directories \
-        "${config_uri}"
+        "${config_url}"
     pushd "${tmp_dir}" > /dev/null || exit
     ovpn_files=$(find . -type f -regextype egrep -iregex '.*?openvpn.*?\.ovpn' -printf '%P\n')
     for each_conf in ${ovpn_files}; do
@@ -108,12 +129,23 @@ _update_hidemyass_config() {
         fi
     done
     popd > /dev/null || pass
-    pushd "${target_dir}" > /dev/null || exit
-    pushd tcp > /dev/null || exit
-    _update_config "$(pwd)" 'HideMyAss' 'tcp'
+    _pre_config_update "${vpn_provider}" "${target_dir}"
+}
+
+# Get NordVPN Config and update
+_update_nordvpn_config() {
+    local vpn_provider=$1
+    local config_url=$2
+    local tmp_dir target_dir
+    echo "Getting NordVPN configs using ${config_url}..."
+    tmp_dir=$(mktemp -d /tmp/vpn.XXXXXXXX)
+    target_dir=$(mktemp -d /tmp/target.XXXXXXXX)
+    mkdir "${target_dir}"/{tcp,udp}
+    pushd "${tmp_dir}" > /dev/null || exit
+    curl -4 -sSL "${config_url}" -o nordvpn.zip || exit
+    unzip -q nordvpn.zip || exit
+    find . -name "*udp*.ovpn" -exec mv {} "${target_dir}/udp/" \;
+    find . -name "*tcp*.ovpn" -exec mv {} "${target_dir}/tcp/" \;
     popd > /dev/null || exit
-    pushd udp > /dev/null || exit
-    _update_config "$(pwd)" 'HideMyAss' 'udp'
-    popd > /dev/null || exit
-    popd > /dev/null || exit
+    _pre_config_update "${vpn_provider}" "${target_dir}"
 }

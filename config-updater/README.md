@@ -15,6 +15,6 @@ docker build -t config-updater -f Dockerfile .
 ```
 docker run --rm -d \
             -e VPN_PROVIDER=<vpn-provider> \
-            -v <config-dir>:/config \
+            -v <repo-dir>:/repo \
             config-updater:latest
 ```

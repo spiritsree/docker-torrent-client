@@ -78,7 +78,7 @@ ENV CREATE_TUN_DEVICE="true" \
 VOLUME /data
 VOLUME /control
 
-HEALTHCHECK --interval=5m CMD /usr/local/scripts/health.sh
+HEALTHCHECK --interval=5m --timeout=15s --start-period=30s CMD /usr/local/scripts/health.sh
 
 EXPOSE 9091
 

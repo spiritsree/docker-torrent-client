@@ -5,17 +5,29 @@
 source /usr/local/scripts/functions.sh
 
 # Global Settings
-export HIDE_MY_ASS_URI="https://vpn.hidemyass.com/vpn-config"
+export URL_CONFIG="/config/url.json"
 
 # If no vpn provider given exit
 if [[ -z "${VPN_PROVIDER-}" ]] || [[ "${VPN_PROVIDER}" == "NONE" ]]; then
     echo "VPN provider empty or not given..."
-    echo "NOOP..."
+    echo "NO OP..."
+    exit
+elif [[ ! -f "${URL_CONFIG}" ]]; then
+    echo "URL config file not found..."
+    exit
+fi
+
+PROVIDER_URL=$(jq -r ."${VPN_PROVIDER,,}" "${URL_CONFIG}")
+
+if [[ -z "${PROVIDER_URL-}" ]]; then
+    echo "Provider url empty..."
     exit
 fi
 
 if [[ "${VPN_PROVIDER,,}" == "hidemyass" ]]; then
-    _update_hidemyass_config "${HIDE_MY_ASS_URI}"
+    _update_hidemyass_config "${VPN_PROVIDER,,}" "${PROVIDER_URL}"
+elif [[ "${VPN_PROVIDER,,}" == "nordvpn" ]]; then
+    _update_nordvpn_config "${VPN_PROVIDER,,}" "${PROVIDER_URL}"
 fi
 
 rm -rf "${TMP_DIR}"

@@ -60,8 +60,7 @@ Using docker pull use the following command.
 ```
 docker run -d --cap-add=NET_ADMIN \
         --sysctl net.ipv6.conf.all.disable_ipv6=0 \
-        --dns 8.8.8.8 \
-        --dns 8.8.4.4 \
+        --dns 8.8.8.8 --dns 8.8.4.4 \
         -v <local-dir>:/data \
         -e OPENVPN_PROVIDER='<VPN Provider>' \
         -e OPENVPN_CONNECTION='<VPN Provider Hostname>:<proto>' \
@@ -76,8 +75,7 @@ If you want to use deluge client use the following.
 ```
 docker run -d --cap-add=NET_ADMIN \
         --sysctl net.ipv6.conf.all.disable_ipv6=0 \
-        --dns 8.8.8.8 \
-        --dns 8.8.4.4 \
+        --dns 8.8.8.8 --dns 8.8.4.4 \
         -v <local-dir>:/data \
         -e OPENVPN_PROVIDER='<VPN Provider>' \
         -e OPENVPN_CONNECTION='<VPN Provider Hostname>:<proto>' \
@@ -97,26 +95,13 @@ For more details visit [Accessing the UI](./doc/web-ui.md).
 ## Documentation
 
 * [Usage](./doc/usage.md)
-* [Environment Variables](./doc/env.md)
+* [Supported Environment Variables](./doc/env.md)
+* [Supported VPN Providers](./doc/supported_vpn.md)
 * [Accessing the UI](./doc/web-ui.md)
 * [Docker Options](./doc/docker.md)
 * [Debugging](./doc/debug.md)
 * [Container Networking](./doc/networking.md)
-
-## Reference
-
-* [Combustion UI](https://github.com/Secretmapper/combustion)
-* [Deluge](https://dev.deluge-torrent.org/wiki/UserGuide)
-* [Deluge Code](https://github.com/deluge-torrent/deluge)
-* [Delige FAQ](https://dev.deluge-torrent.org/wiki/Faq)
-* [Dockerize](https://github.com/jwilder/dockerize)
-* [Docker Compose](https://docs.docker.com/compose/compose-file/)
-* [Dumb Init](https://github.com/Yelp/dumb-init)
-* [Firewall](https://help.ubuntu.com/lts/serverguide/firewall.html)
-* [Openvpn](https://openvpn.net/community-resources/reference-manual-for-openvpn-2-4/)
-* [Transmission](https://github.com/transmission/transmission)
-* [Transmission Config](https://github.com/transmission/transmission/wiki/Editing-Configuration-Files)
-* [Transmission Web Control UI](https://github.com/ronggang/transmission-web-control)
+* [References](./doc/references.md)
 
 ## License
 
