@@ -26,16 +26,47 @@ _firewall_allow_port() {
     fi
 }
 
+# export a prefix_key=value based on input (e.g: _export_env_var prefix key val)
+_export_env_var() {
+    local prefix=$1
+    local key=$2; shift; shift
+    local value="${*}"
+    local sane_value="${value// /}"
+    local env_key
+
+    env_key=$(echo "${prefix}_${key}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+    if [[ -z "$(printf '%s' "${!env_key}")" ]]; then
+        eval "export ${env_key}=${sane_value}"
+    fi
+}
+
 # Populate env vars from json config file if env does not exist
 _get_settings() {
     local prefix=$1
     local settings_file=$2
+    local data_type setting j_key j_value sub_setting s_key s_value a_val
 
     for setting in $(jq -r 'to_entries | map(.key + "=" + (.value | tostring)) | .[]' "${settings_file}"); do
-        key=$(echo "${prefix}_${setting%=*}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
-        value=${setting#*=}
-        if [[ -z "$(printf '%s' "${!key}")" ]]; then
-            eval "export $key=$value"
+        j_key=${setting%=*}
+        j_value=${setting#*=}
+        data_type=$(echo "${j_value}" | jq -r type 2> /dev/null)
+        if [[ "${data_type}" == "array" ]]; then
+            s_value=""
+            for a_val in $(echo "${j_value}" | jq -c '.[]?'); do
+                s_value+="${a_val},"
+            done
+            s_value=$(echo "${s_value}" | sed 's/,$//' | sed 's/"/\\"/g')
+            _export_env_var "${prefix}" "${j_key}" "${s_value}"
+        elif [[ "${data_type}" == "object" ]]; then
+            for sub_setting in $(echo "${j_value}" | jq -r 'to_entries | map(.key + "=" + (.value | tostring)) | .[]'); do
+                s_key=${sub_setting%=*}
+                s_value=${sub_setting#*=}
+                _export_env_var "${prefix}" "${j_key}_${s_key}" "${s_value}"
+            done
+        else
+            j_key=${setting%=*}
+            j_value=${setting#*=}
+            _export_env_var "${prefix}" "${j_key}" "${j_value}"
         fi
     done
 }

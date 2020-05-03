@@ -5,7 +5,7 @@
     "base": "/",
     "cert": "ssl/daemon.cert",
     "default_daemon": "bd22c67dd636483a967aa7488137f334",
-    "enabled_plugins": [],
+    "enabled_plugins": [{{ default .Env.DELUGE_ENABLED_PLUGINS "" }}],
     "first_login": false,
     "https": {{ lower (default .Env.DELUGE_HTTPS "false") }},
     "interface": "{{ default .Env.DELUGE_INTERFACE "0.0.0.0" }}",

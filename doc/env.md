@@ -49,6 +49,8 @@ You can refer [transmission config](https://github.com/transmission/transmission
 
 All these are set in the config directly with default during the intial run. If you set these ENV during the docker run, those settings will have the precedence. If not set, the value will get constructed from the config file (if previous config exists).
 
+**Bandwidth**
+
 Variable | Description | Default |
 :--------|:------------|:--------|
 `TRANSMISSION_ALT_SPEED_ENABLED` | Turtle Mode for GUI | `false` |
@@ -59,8 +61,18 @@ Variable | Description | Default |
 `TRANSMISSION_SPEED_LIMIT_UP` | Up speed limit in KB/s | `100` |
 `TRANSMISSION_SPEED_LIMIT_UP_ENABLED` | Enable up speed limit | `false` |
 `TRANSMISSION_UPLOAD_SLOTS_PER_TORRENT` | Number of upload slots (peers connection) per torrent | `14` |
+
+**Blocklists**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
 `TRANSMISSION_BLOCKLIST_URL` | Blocklist url | `http://www.example.com/blocklist` |
 `TRANSMISSION_BLOCKLIST_ENABLED` | Enable blocklist | `false` |
+
+**Files and Locations**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
 `TRANSMISSION_INCOMPLETE_DIR_ENABLED` | Enable incomplete directory use | `true` |
 `TRANSMISSION_PREALLOCATION` | 0 = Off, 1 = Fast, 2 = Full (slower but reduces disk fragmentation) | `1` |
 `TRANSMISSION_RENAME_PARTIAL_FILES` | Postfix partially downloaded files with ".part" | `true` |
@@ -68,6 +80,11 @@ Variable | Description | Default |
 `TRANSMISSION_TRASH_ORIGINAL_TORRENT_FILES` | Delete torrents added from the watch directory | `false` |
 `TRANSMISSION_UMASK` | Sets transmission's file mode creation mask | `2` |
 `TRANSMISSION_WATCH_DIR_ENABLED` | Enable watch directory | `true` |
+
+**Misc**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
 `TRANSMISSION_CACHE_SIZE_MB` | Transmission's memory cache in MB | `4` |
 `TRANSMISSION_DHT_ENABLED` | Enable distribution hash table | `true` |
 `TRANSMISSION_ENCRYPTION` | 0 = Prefer unencrypted connections, 1 = Prefer encrypted connections, 2 = Require encrypted connections; default = 1 | `1` |
@@ -80,6 +97,11 @@ Variable | Description | Default |
 `TRANSMISSION_SCRIPT_TORRENT_DONE_ENABLED` | Run a script at torrent completion | `false` |
 `TRANSMISSION_SCRIPT_TORRENT_DONE_FILENAME` | Path to script | |
 `TRANSMISSION_UTP_ENABLED` | Enable micro transport protocol | `true` |
+
+**Peers**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
 `TRANSMISSION_BIND_ADDRESS_IPV4` | Where to listen for peer connections (Will be updated with tunnel IP to avoid connection leak) | `0.0.0.0` |
 `TRANSMISSION_BIND_ADDRESS_IPV6` | Where to listen for peer connections | `::` |
 `TRANSMISSION_PEER_CONGESTION_ALGORITHM` | Peer congestion algorithm to use | |
@@ -87,17 +109,32 @@ Variable | Description | Default |
 `TRANSMISSION_PEER_LIMIT_GLOBAL` | Global peer limit | `240` |
 `TRANSMISSION_PEER_LIMIT_PER_TORRENT` | Per torrent peer limit | `60` |
 `TRANSMISSION_PEER_SOCKET_TOS` | Set type of service parameter for outgoing TCP packets | `default` |
+
+**Peer Port**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
 `TRANSMISSION_PEER_PORT` | Peer port | `51413` |
 `TRANSMISSION_PEER_PORT_RANDOM_HIGH` | Higher limit if `TRANSMISSION_PEER_PORT_RANDOM_ON_START` enabled | `65535` |
 `TRANSMISSION_PEER_PORT_RANDOM_LOW` | Lower limit if `TRANSMISSION_PEER_PORT_RANDOM_ON_START` enabled | `45535` |
 `TRANSMISSION_PEER_PORT_RANDOM_ON_START` | Select a rando peer port if `true` | `false` |
 `TRANSMISSION_PORT_FORWARDING_ENABLED` | Enable UPnP or NAT-PMP | `false` |
+
+**Queuing**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
 `TRANSMISSION_DOWNLOAD_QUEUE_ENABLED` | When true, Transmission will only download download-queue-size non-stalled torrents at once | `true` |
 `TRANSMISSION_DOWNLOAD_QUEUE_SIZE` | Download queue size | `6` |
 `TRANSMISSION_QUEUE_STALLED_ENABLED` | When true, torrents that have not shared data for queue-stalled-minutes are treated as 'stalled' and are not counted against the queue-download-size and seed-queue-size limits | `true` |
 `TRANSMISSION_QUEUE_STALLED_MINUTES` | Queue stalled in minutes | `30` |
 `TRANSMISSION_SEED_QUEUE_ENABLED` | When true. Transmission will only seed seed-queue-size non-stalled torrents at once | `false` |
 `TRANSMISSION_SEED_QUEUE_SIZE` | Seed queue size | `10` |
+
+**RPC**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
 `TRANSMISSION_RPC_AUTHENTICATION_REQUIRED` | Is RPC authentication required | `true` |
 `TRANSMISSION_RPC_BIND_ADDRESS` | Where to listen for RPC connections | `0.0.0.0` |
 `TRANSMISSION_RPC_ENABLED` | Enable RPC | `true` |
@@ -108,6 +145,11 @@ Variable | Description | Default |
 `TRANSMISSION_RPC_USERNAME` | RPC username | `username` |
 `TRANSMISSION_RPC_WHITELIST` | RPC whitelist IPs (comma-separated) | `127.0.0.1` |
 `TRANSMISSION_RPC_WHITELIST_ENABLED` | Enable RPC whitelist | `true` |
+
+**Scheduling**
+
+Variable | Description | Default |
+:--------|:------------|:--------|
 `TRANSMISSION_ALT_SPEED_TIME_ENABLED` | When enabled, this will toggle the `TRANSMISSION_ALT_SPEED_ENABLED` setting | `false` |
 `TRANSMISSION_ALT_SPEED_TIME_BEGIN` | Alt speed begin time, in minutes from midnight (as per default, 9am) | `540` |
 `TRANSMISSION_ALT_SPEED_TIME_END` | Alt speed end time, in minutes from midnight (as per default, 5pm) | `1020` |
@@ -239,7 +281,16 @@ Variable | Description | Default |
 
 Variable | Description | Default |
 :--------|:------------|:--------|
-
+`DELUGE_PROXY_ANONYMOUS_MODE` | Proxy anonymous mode | `false` |
+`DELUGE_PROXY_FORCE_PROXY` | Force proxy connection | `false` |
+`DELUGE_PROXY_HOSTNAME` | Proxy hostname to user | |
+`DELUGE_PROXY_PORT` | Proxy port | `8080` |
+`DELUGE_PROXY_USERNAME` | Proxy username | |
+`DELUGE_PROXY_PASSWORD` | Proxy password | |
+`DELUGE_PROXY_PROXY_HOSTNAMES` | Proxying proxy hostnames | `true` |
+`DELUGE_PROXY_PROXY_PEER_CONNECTIONS` | Proxying peer connections | `true` |
+`DELUGE_PROXY_PROXY_TRACKER_CONNECTIONS` | Proxying tracker conenctions | `true` |
+`DELUGE_PROXY_TYPE` | Proxy type | `0` |
 
 **Cache**
 

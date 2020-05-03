@@ -5,7 +5,7 @@
 [![Docker Cloud Automated build](https://img.shields.io/docker/cloud/automated/spiritsree/docker-torrent-client)](https://hub.docker.com/repository/docker/spiritsree/docker-torrent-client)
 [![Docker Pulls](https://img.shields.io/docker/pulls/spiritsree/docker-torrent-client)](https://hub.docker.com/repository/docker/spiritsree/docker-torrent-client)
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/spiritsree/docker-torrent-client?sort=semver)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/spiritsree/docker-torrent-client/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/spiritsree/docker-torrent-client/blob/master/LICENSE.md)
 
 
 Docker torrent client with VPN
@@ -42,16 +42,19 @@ Mandatory Arguments (M_ARGS):
     -v|--vpn-provider <vpn-provider>  VPN Provider (e.g: HideMe)
 
 Optional Arguments (O_ARGS):
-    -h|--help                     Print usage
-    -o|--os <ubuntu|alpine>       OS type, Default: ubuntu
-    -d|--data-dir <local-dir>     Local dir to mount for data (This should be added in Docker File Sharing Default: ~/Downloads/uTorrent/data/)
-    -l|--local                    Build docker image locally
-    -i|--image <docker-image>     Docker Image (Default: spiritsree/docker-torrent-client:latest-ubuntu)
-    --proto <UDP|TCP>             VPN connection proto UDP or TCP
+    -h|--help                   Print usage
+    -o|--os <ubuntu|alpine>     OS type, Default: ubuntu
+    -d|--data-dir <local-dir>   Local dir to mount for data (This should be added in Docker File Sharing)
+    -l|--local                  Build docker image locally
+    -i|--image <docker-image>   Docker Image (Default: spiritsree/docker-torrent-client:latest-ubuntu)
+    --proto <UDP|TCP>           VPN connection proto UDP or TCP (Default: UDP)
+    -r|--no-recomment           Do not recomment best server (only for NordVPN. Need to provide a filter to search on)
+    --vpn-country               Recomment based on country (only for NordVPN if --no-recomment)
+    --vpn-type                  Recomment based on Server Type (only for NordVPN if --no-recomment)
 
 Examples:
     setup.sh -h
-    setup.sh -u user -p password -v HideMe -i spiritsree/docker-torrent-client:latest-alpine
+    setup.sh -u user -p password -v HideMe -i spiritsree/docker-torrent-client:latest-ubuntu
     setup.sh -u user -p password -v FastestVPN --proto tcp
 ```
 
@@ -60,8 +63,7 @@ Using docker pull use the following command.
 ```
 docker run -d --cap-add=NET_ADMIN \
         --sysctl net.ipv6.conf.all.disable_ipv6=0 \
-        --dns 8.8.8.8 \
-        --dns 8.8.4.4 \
+        --dns 8.8.8.8 --dns 8.8.4.4 \
         -v <local-dir>:/data \
         -e OPENVPN_PROVIDER='<VPN Provider>' \
         -e OPENVPN_CONNECTION='<VPN Provider Hostname>:<proto>' \
@@ -76,8 +78,7 @@ If you want to use deluge client use the following.
 ```
 docker run -d --cap-add=NET_ADMIN \
         --sysctl net.ipv6.conf.all.disable_ipv6=0 \
-        --dns 8.8.8.8 \
-        --dns 8.8.4.4 \
+        --dns 8.8.8.8 --dns 8.8.4.4 \
         -v <local-dir>:/data \
         -e OPENVPN_PROVIDER='<VPN Provider>' \
         -e OPENVPN_CONNECTION='<VPN Provider Hostname>:<proto>' \
@@ -97,26 +98,13 @@ For more details visit [Accessing the UI](./doc/web-ui.md).
 ## Documentation
 
 * [Usage](./doc/usage.md)
-* [Environment Variables](./doc/env.md)
+* [Supported Environment Variables](./doc/env.md)
+* [Supported VPN Providers](./doc/supported_vpn.md)
 * [Accessing the UI](./doc/web-ui.md)
 * [Docker Options](./doc/docker.md)
 * [Debugging](./doc/debug.md)
 * [Container Networking](./doc/networking.md)
-
-## Reference
-
-* [Combustion UI](https://github.com/Secretmapper/combustion)
-* [Deluge](https://dev.deluge-torrent.org/wiki/UserGuide)
-* [Deluge Code](https://github.com/deluge-torrent/deluge)
-* [Delige FAQ](https://dev.deluge-torrent.org/wiki/Faq)
-* [Dockerize](https://github.com/jwilder/dockerize)
-* [Docker Compose](https://docs.docker.com/compose/compose-file/)
-* [Dumb Init](https://github.com/Yelp/dumb-init)
-* [Firewall](https://help.ubuntu.com/lts/serverguide/firewall.html)
-* [Openvpn](https://openvpn.net/community-resources/reference-manual-for-openvpn-2-4/)
-* [Transmission](https://github.com/transmission/transmission)
-* [Transmission Config](https://github.com/transmission/transmission/wiki/Editing-Configuration-Files)
-* [Transmission Web Control UI](https://github.com/ronggang/transmission-web-control)
+* [References](./doc/references.md)
 
 ## License
 
