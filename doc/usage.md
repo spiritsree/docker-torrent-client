@@ -47,25 +47,28 @@ Usage:
     setup.sh M_ARGS [O_ARGS]
 
 Mandatory Arguments (M_ARGS):
-    -u|--user <username>              VPN Username
-    -p|--pass <password>              VPN Password
-    -v|--vpn-provider <vpn-provider>  VPN Provider (e.g: HideMe)
+    -v|--vpn-provider <vpn-provider>           VPN Provider (e.g: HideMe)
 
 Optional Arguments (O_ARGS):
-    -h|--help                   Print usage
-    -o|--os <ubuntu|alpine>     OS type, Default: ubuntu
-    -d|--data-dir <local-dir>   Local dir to mount for data (This should be added in Docker File Sharing)
-    -l|--local                  Build docker image locally
-    -i|--image <docker-image>   Docker Image (Default: spiritsree/docker-torrent-client:latest-ubuntu)
-    --proto <UDP|TCP>           VPN connection proto UDP or TCP (Default: UDP)
-    -r|--no-recomment           Do not recomment best server (only for NordVPN. Need to provide a filter to search on)
-    --vpn-country               Recomment based on country (only for NordVPN if --no-recomment)
-    --vpn-type                  Recomment based on Server Type (only for NordVPN if --no-recomment)
+    -h|--help                                  Print usage
+    -u|--user <username>                       VPN Username
+    -p|--pass <password>                       VPN Password
+    -o|--os <ubuntu|alpine>                    OS type, Default: ubuntu
+    -d|--data-dir <local-dir>                  Local dir to mount for data (Default: /data)
+    -a|--auth-dir <local-dir>                  Auth/Custom dir to mount with VPN credentials
+    -l|--local                                 Build docker image locally
+    -i|--image <docker-image>                  Docker Image (Default: spiritsree/docker-torrent-client:latest-ubuntu)
+    -r|--no-recommend                          Do not recommend best server use filters instead (only for NordVPN)
+    --proto <UDP|TCP|STRONG-TCP|STRONG-UDP>    VPN connection proto (Default: UDP)
+    --vpn-country                              Recommend based on country (only for NordVPN if --no-recommend)
+    --vpn-type                                 Recommend based on Server Type (only for NordVPN if --no-recommend)
 
 Examples:
     setup.sh -h
+    setup.sh -v NordVPN
     setup.sh -u user -p password -v HideMe -i spiritsree/docker-torrent-client:latest-ubuntu
     setup.sh -u user -p password -v FastestVPN --proto tcp
+
 ```
 
 ## Docker Compose

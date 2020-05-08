@@ -9,6 +9,7 @@ VPN_PROVIDER="${OPENVPN_PROVIDER,,}"
 
 export OPENVPN_CONFIG="/etc/openvpn/"
 export OPENVPN_TEMPLATE="/etc/templates/openvpn/${VPN_PROVIDER}"
+export OPENVPN_AUTH_FILE="/control/ovpn-auth.txt"
 
 if [[ "${ENABLE_FILE_LOGGING}" == "false" ]]; then
     export LOG_FILE="/proc/self/fd/1"
@@ -23,60 +24,104 @@ if [[ "${CREATE_TUN_DEVICE:-false}" == "true" ]]; then
     mknod -m 0666 /dev/net/tun c 10 200
 fi
 
-# Exit if OpenVPN Provider or Config doesn't exist
+# CheckConfig: exit if OpenVPN Provider or Config doesn't exist
 if [[ "${OPENVPN_PROVIDER}" == "NONE" ]] || [[ -z "${OPENVPN_PROVIDER-}" ]]; then
     echo "[OPENVPN] OPENVPN_PROVIDER not set..." >> ${LOG_FILE}
     echo "[OPENVPN] Exiting..." >> ${LOG_FILE}
     exit 1
+elif [[ "${VPN_PROVIDER}" == "custom" ]]; then
+    if [[ ! -f "/custom/default.ovpn" ]]; then
+        echo "[OPENVPN] Config /custom/default.ovpn not found..." >> ${LOG_FILE}
+        echo "[OPENVPN] Exiting..." >> ${LOG_FILE}
+        exit 1
+    else
+        OPENVPN_CONFIG="/custom"
+    fi
 elif [[ ! -d "${OPENVPN_TEMPLATE}" ]]; then
     echo "[OPENVPN] Config doesn't exist for provider: ${OPENVPN_PROVIDER}" >> ${LOG_FILE}
     echo "[OPENVPN] Exiting..." >> ${LOG_FILE}
     exit 1
 fi
 
-echo "[OPENVPN] Using OpenVPN provider ${OPENVPN_PROVIDER}" >> ${LOG_FILE}
+echo "[OPENVPN] Using OpenVPN provider ${OPENVPN_PROVIDER}..." >> ${LOG_FILE}
+echo "[OPENVPN] Using OpenVPN config ${OPENVPN_CONFIG}/default.ovpn..." >> ${LOG_FILE}
 
-# add OpenVPN user/pass to the auth-user-pass file
+# CheckAuth: add OpenVPN user/pass verification and update auth-user-pass file
 if [[ "${OPENVPN_USERNAME}" == "NONE" ]] || [[ "${OPENVPN_PASSWORD}" == "NONE" ]] ; then
-    if [[ ! -f /control/ovpn-auth.txt ]] ; then
-        echo "[OPENVPN] OpenVPN username and password empty..." >> ${LOG_FILE}
-        echo "[OPENVPN] Exiting..." >> ${LOG_FILE}
-        exit 1
-    fi
-    echo "[OPENVPN] OPENVPN credentials found in /control/ovpn-auth.txt ..." >> ${LOG_FILE}
-else
-    echo "[OPENVPN] Setting OPENVPN credentials..." >> ${LOG_FILE}
-    mkdir -p /control
-    printf '%s\n' "${OPENVPN_USERNAME}" "${OPENVPN_PASSWORD}" > /control/ovpn-auth.txt
-    chmod 600 /control/ovpn-auth.txt
-fi
-
-if [[ "${OPENVPN_HOSTNAME}" == "NONE" ]] || [[ -z "${OPENVPN_HOSTNAME}" ]]; then
-    echo "[OPENVPN] OPENVPN_HOSTNAME not set..." >> ${LOG_FILE}
-    echo "[OPENVPN] Checking OPENVPN_CONNECTION instead..." >> ${LOG_FILE}
-    if [[ "${OPENVPN_CONNECTION}" == "NONE" ]] || [[ -z "${OPENVPN_CONNECTION}" ]]; then
+    if [[ -f "${OPENVPN_AUTH_FILE}" ]] ; then
+        echo "[OPENVPN] Credentials file found at ${OPENVPN_AUTH_FILE} ..." >> ${LOG_FILE}
+    elif [[ "${VPN_PROVIDER}" == "custom" ]] ; then
+        if [[ -f "${OPENVPN_CONFIG}/ovpn-auth.txt" ]] ; then
+            echo "[OPENVPN] Credentials file found at ${OPENVPN_CONFIG}/ovpn-auth.txt ..." >> ${LOG_FILE}
+            export OPENVPN_AUTH_FILE="${OPENVPN_CONFIG}/ovpn-auth.txt"
+        else
+            echo "[OPENVPN] Credentials file not found at ${OPENVPN_CONFIG}/ovpn-auth.txt..." >> ${LOG_FILE}
+            echo "[OPENVPN] Exiting..." >> ${LOG_FILE}
+            exit 1
+        fi
+    else
         {
-        echo "[OPENVPN] Both OPENVPN_HOSTNAME and OPENVPN_CONNECTION not set..."
-        echo "[OPENVPN] Either one of the setting is required..."
+        echo "[OPENVPN] Credentials file not found at ${OPENVPN_AUTH_FILE}..."
+        echo "[OPENVPN] username and password not provided..."
         echo "[OPENVPN] Exiting..."
         } >> ${LOG_FILE}
         exit 1
+    fi
+else
+    echo "[OPENVPN] Setting credentials in ${OPENVPN_AUTH_FILE}..." >> ${LOG_FILE}
+    mkdir -p /control
+    printf '%s\n' "${OPENVPN_USERNAME}" "${OPENVPN_PASSWORD}" > "${OPENVPN_AUTH_FILE}"
+fi
+
+# Authfile permission user access
+chmod 600 "${OPENVPN_AUTH_FILE}"
+
+# CheckHostname: validating OPENVPN_HOSTNAME
+if [[ "${OPENVPN_HOSTNAME}" == "NONE" ]] || [[ -z "${OPENVPN_HOSTNAME}" ]]; then
+    # Getting OPENVPN_CONNECTION from OPENVPN_CONNECTION
+    if [[ "${OPENVPN_CONNECTION}" == "NONE" ]] || [[ -z "${OPENVPN_CONNECTION}" ]]; then
+        # Ignore OPENVPN_CONNECTION and OPENVPN_HOSTNAME if provider is custom
+        if [[ "${VPN_PROVIDER}" == "custom" ]] ; then
+            echo "[OPENVPN] Provider is ${VPN_PROVIDER}, not using OPENVPN_HOSTNAME and OPENVPN_CONNECTION..." >> ${LOG_FILE}
+        else
+            {
+            echo "[OPENVPN] Both OPENVPN_HOSTNAME and OPENVPN_CONNECTION not set..."
+            echo "[OPENVPN] Either one of the setting is required..."
+            echo "[OPENVPN] Exiting..."
+            } >> ${LOG_FILE}
+            exit 1
+        fi
     else
         OPENVPN_HOSTNAME="${OPENVPN_CONNECTION%%:*}"
         OPENVPN_PROTO=$(_lowercase "${OPENVPN_CONNECTION##*:}")
+        # Get IP if Hostname is not IP
+        # grep -E -o "^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+        if ! echo "${OPENVPN_HOSTNAME// /}" | grep -E -o '^[0-9][0-9\.]+[0-9]$' > /dev/null; then
+            OPENVPN_HOSTNAME_IP=$(dig +short "${OPENVPN_HOSTNAME}" | grep -v '\.$' | tail -1)
+        else
+            OPENVPN_HOSTNAME_IP="${OPENVPN_HOSTNAME}"
+        fi
+        export OPENVPN_HOSTNAME_IP
     fi
 fi
 
-ovpn_template="${OPENVPN_TEMPLATE}/${OPENVPN_PROTO}/default.ovpn.tmpl"
+# Use IP if NordVPN
+if [[ "${VPN_PROVIDER}" == "nordvpn" ]] ; then
+    OPENVPN_HOSTNAME="${OPENVPN_HOSTNAME_IP}"
+fi
 
-# Expand the OpenVPN Config
-if [[ -f "${ovpn_template}" ]]; then
-    echo "[OPENVPN] Expanding template ${ovpn_template}..." >> ${LOG_FILE}
-    dockerize -template "${ovpn_template}:${OPENVPN_CONFIG}/default.ovpn"
-else
-    echo "[OPENVPN] Template ${ovpn_template} not found..." >> ${LOG_FILE}
-    echo "[OPENVPN] Protocol may not be supported..." >> ${LOG_FILE}
-    exit 1
+# Expand the OpenVPN Config if not custom provider
+if [[ "${VPN_PROVIDER}" != "custom" ]] ; then
+    ovpn_template="${OPENVPN_TEMPLATE}/${OPENVPN_PROTO}/default.ovpn.tmpl"
+
+    if [[ -f "${ovpn_template}" ]]; then
+        echo "[OPENVPN] Expanding template ${ovpn_template}..." >> ${LOG_FILE}
+        dockerize -template "${ovpn_template}:${OPENVPN_CONFIG}/default.ovpn"
+    else
+        echo "[OPENVPN] Template ${ovpn_template} not found..." >> ${LOG_FILE}
+        echo "[OPENVPN] Protocol may not be supported..." >> ${LOG_FILE}
+        exit 1
+    fi
 fi
 
 # Get default gateway

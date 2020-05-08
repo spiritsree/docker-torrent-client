@@ -43,6 +43,10 @@ With `OPENVPN_HOSTNAME` as an option you need to pass `OPENVPN_PROTO` as well if
 
 `OPENVPN_CONNECTION` will have the format of `<server-name>:<proto>`.
 
+if `OPENVPN_PROVIDER` is `custom` then you don't need to provider any of `OPENVPN_CONNECTION` or `OPENVPN_HOSTNAME` and the config will be taken from `/custom/default.ovpn`.
+
+For PIA (PrivateInternetAccess) VPN you can use `STRONG-UDP` or `STRONG-TCP` for better encryption, in addition to `UDP` and `TCP` protocol.
+
 ## Transmission
 
 You can refer [transmission config](https://github.com/transmission/transmission/wiki/Editing-Configuration-Files) for details.

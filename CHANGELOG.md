@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.5.0
+
+* Support custom provider by the user.
+* Support PIA and PureVPN VPN Provider and config updater for the same
+* NordVPN to use IP instead of hostname
+
 ## Version 0.4.0
 
 * Improvements to the tor client config reader and exporting

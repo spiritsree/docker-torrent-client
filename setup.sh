@@ -3,7 +3,7 @@
 IMAGE_TAG='docker-torrent-client'
 
 # Quotes around this won't expand the tilde
-LOCAL_DATA_DIR=~/Downloads/uTorrent/data/
+LOCAL_DATA_DIR='/data'
 
 SCRIPT_NAME="$( basename "${BASH_SOURCE[0]}" )"
 BASEDIR=$(dirname "$0")
@@ -19,11 +19,12 @@ ARG_OS='ubuntu'
 ARG_DIR="${LOCAL_DATA_DIR}"
 ARG_PROVIDER=''
 ARG_LOCAL='false'
-ARG_RECOMMENT='true'
+ARG_RECOMMEND='true'
 ARG_FILTER_COUNTRY='false'
 ARG_FILTER_TYPE='false'
 ARG_FILTER_PROTO='true'
 ARG_PROTO='UDP'
+ARG_AUTH=''
 ARG_IMAGE='spiritsree/docker-torrent-client:latest-ubuntu'
 OPENVPN_SERVERS="${BASEDIR}/app/tmpls/openvpn/vpn_servers.json"
 NORD_API='https://api.nordvpn.com/v1'
@@ -56,23 +57,25 @@ _usage() {
     echo "    ${SCRIPT_NAME} M_ARGS [O_ARGS]"
     echo
     echo 'Mandatory Arguments (M_ARGS):'
-    echo '    -u|--user <username>              VPN Username'
-    echo '    -p|--pass <password>              VPN Password'
-    echo '    -v|--vpn-provider <vpn-provider>  VPN Provider (e.g: HideMe)'
+    echo '    -v|--vpn-provider <vpn-provider>           VPN Provider (e.g: HideMe)'
     echo
     echo 'Optional Arguments (O_ARGS):'
-    echo '    -h|--help                   Print usage'
-    echo '    -o|--os <ubuntu|alpine>     OS type, Default: ubuntu'
-    echo "    -d|--data-dir <local-dir>   Local dir to mount for data (This should be added in Docker File Sharing)"
-    echo '    -l|--local                  Build docker image locally'
-    echo '    -i|--image <docker-image>   Docker Image (Default: spiritsree/docker-torrent-client:latest-ubuntu)'
-    echo '    --proto <UDP|TCP>           VPN connection proto UDP or TCP (Default: UDP)'
-    echo '    -r|--no-recomment           Do not recomment best server (only for NordVPN. Need to provide a filter to search on)'
-    echo '    --vpn-country               Recomment based on country (only for NordVPN if --no-recomment)'
-    echo '    --vpn-type                  Recomment based on Server Type (only for NordVPN if --no-recomment)'
+    echo '    -h|--help                                  Print usage'
+    echo '    -u|--user <username>                       VPN Username'
+    echo '    -p|--pass <password>                       VPN Password'
+    echo '    -o|--os <ubuntu|alpine>                    OS type, Default: ubuntu'
+    echo '    -d|--data-dir <local-dir>                  Local dir to mount for data (Default: /data)'
+    echo '    -a|--auth-dir <local-dir>                  Auth/Custom dir to mount with VPN credentials'
+    echo '    -l|--local                                 Build docker image locally'
+    echo '    -i|--image <docker-image>                  Docker Image (Default: spiritsree/docker-torrent-client:latest-ubuntu)'
+    echo '    -r|--no-recommend                          Do not recommend best server use filters instead (only for NordVPN)'
+    echo '    --proto <UDP|TCP|STRONG-TCP|STRONG-UDP>    VPN connection proto (Default: UDP)'
+    echo '    --vpn-country                              Recommend based on country (only for NordVPN if --no-recommend)'
+    echo '    --vpn-type                                 Recommend based on Server Type (only for NordVPN if --no-recommend)'
     echo
     echo 'Examples:'
     echo "    ${SCRIPT_NAME} -h"
+    echo "    ${SCRIPT_NAME} -v NordVPN"
     echo "    ${SCRIPT_NAME} -u user -p password -v HideMe -i spiritsree/docker-torrent-client:latest-ubuntu"
     echo "    ${SCRIPT_NAME} -u user -p password -v FastestVPN --proto tcp"
     echo
@@ -80,7 +83,7 @@ _usage() {
 
 # Get Options
 _getOptions() {
-    optspec=":hrlu:p:o:d:v:i:-:"
+    optspec=":hrla:u:p:o:d:v:i:-:"
     while getopts "$optspec" opt; do
         case $opt in
             -)
@@ -105,6 +108,10 @@ _getOptions() {
                         ARG_DIR="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
                         [[ ${ARG_DIR} =~ ^-.* || "${ARG_DIR}" = "" ]] && { _usage "Option --data-dir requires an agument"; exit 1; }
                         ;;
+                    auth-dir)
+                        ARG_AUTH="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
+                        [[ ${ARG_AUTH} =~ ^-.* || "${ARG_AUTH}" = "" ]] && { _usage "Option --auth-dir requires an agument"; exit 1; }
+                        ;;
                     vpn-country)
                         ARG_FILTER_COUNTRY="true"
                         ;;
@@ -123,8 +130,8 @@ _getOptions() {
                         _usage
                         exit 0
                         ;;
-                    no-recomment)
-                        ARG_RECOMMENT="false"
+                    no-recommend)
+                        ARG_RECOMMEND="false"
                         ;;
                     local)
                         ARG_LOCAL="true"
@@ -144,7 +151,7 @@ _getOptions() {
                 exit 0
                 ;;
             r)
-                ARG_RECOMMENT="false"
+                ARG_RECOMMEND="false"
                 ;;
             l)
                 ARG_LOCAL="true"
@@ -167,6 +174,9 @@ _getOptions() {
                 ;;
             d)
                 ARG_DIR="${OPTARG}"
+                ;;
+            a)
+                ARG_AUTH="${OPTARG}"
                 ;;
             \?)
                 _usage "Invalid option: -$OPTARG"
@@ -253,7 +263,7 @@ _get_server() {
     local vpn_provider=$2
     local vpn_proto=$3
 
-    raw_serverlist=$(jq -r -c ."${vpn_provider}"."${vpn_proto}" "${OPENVPN_SERVERS}")
+    raw_serverlist=$(jq -r -c ."${vpn_provider}".\""${vpn_proto}"\" "${OPENVPN_SERVERS}")
     if [[ -z "${raw_serverlist}" ]] || [[ "${raw_serverlist}" == "null" ]]; then
         server=""
         eval "${__resultvar}='$server'"
@@ -394,23 +404,38 @@ main() {
     local image_os vpn_proto vpn_provider ipv6_enabled vpn_server local_net
     local selected_country selected_proto selected_type filter
 
-    if [[ -z "${ARG_USER}" ]]; then
-        _usage "Username required !!!"
-        exit 1
-    elif [[ -z "${ARG_PASS}" ]]; then
-        _usage "Password required !!!"
-        exit 1
-    elif [[ -z "${ARG_PROVIDER}" ]]; then
+    if [[ -z "${ARG_PROVIDER}" ]]; then
         _usage "VPN Provider name required !!!"
         exit 1
     fi
 
+    if [[ -z "${ARG_USER}" ]] || [[ -z "${ARG_PASS}" ]]; then
+        if [[ -z "${ARG_AUTH}" ]]; then
+            _usage "Auth dir required !!!"
+            exit 1
+        elif [[ ! -d "${ARG_AUTH}" ]]; then
+            _usage "dir ${ARG_AUTH} doesn't exist"
+            exit 1
+        fi
+    fi
+
     image_os=$(_lowercase "${ARG_OS}")
     vpn_proto=$(_lowercase "${ARG_PROTO}")
+    vpn_provider=$(_lowercase "${ARG_PROVIDER}")
 
-    if ! [[ "${vpn_proto}" == "udp" || "${vpn_proto}" == "tcp" ]]; then
-        _usage "--proto only UDP or TCP are valid values !!!"
-        exit 1
+    if [[ "${vpn_provider}" == "pia" ]]; then
+        if ! [[ "${vpn_proto}" == "udp" ||
+                "${vpn_proto}" == "tcp" ||
+                "${vpn_proto}" == "strong-tcp" ||
+                "${vpn_proto}" == "strong-udp" ]]; then
+            _usage "--proto only UDP, TCP, STRONG-TCP or STRONG-UDP are valid values with PIA !!!"
+            exit 1
+        fi
+    else
+        if ! [[ "${vpn_proto}" == "udp" || "${vpn_proto}" == "tcp" ]]; then
+            _usage "--proto only UDP or TCP are valid values !!!"
+            exit 1
+        fi
     fi
 
     if ! [[ "${image_os}" == "ubuntu" ||  "${image_os}" == "alpine" ]]; then
@@ -418,58 +443,61 @@ main() {
         exit 1
     fi
 
-    if [[ -z "${ARG_DIR}" ]] || [[ ! -d "${ARG_DIR}" ]]; then
+    if [[ -z "${ARG_DIR}" ]]; then
         _usage "Provide a valid dir !!!"
         exit 1
-    fi
-
-    if ! command -v jq > /dev/null; then
-        echo "Please install jq"
+    elif [[ ! -d "${ARG_DIR}" ]]; then
+        _usage "dir ${ARG_DIR} doesn't exist"
         exit 1
     fi
 
-    vpn_provider=$(_lowercase "${ARG_PROVIDER}")
-
-    if [[ "${vpn_provider}" == "nordvpn" ]]; then
-        if [[ "${ARG_RECOMMENT}" == "true" ]]; then
-            _get_recommended_host "vpn_server" "${NORD_API}"
-        elif [[ "${ARG_RECOMMENT}" == "false" ]]; then
-            if [[ "${ARG_FILTER_COUNTRY}" == "false" ]] &&
-               [[ "${ARG_FILTER_TYPE}" == "false" ]]; then
-                _usage "Select filter using one or a combination of --vpn-country or --vpn-type"
-                exit 1
-            fi
-            if [[ "${ARG_FILTER_COUNTRY}" == "true" ]]; then
-                _select_country "selected_country" "${NORD_API}"
-            fi
-            if [[ "${ARG_FILTER_TYPE}" == "true" ]]; then
-                _select_vpn_type "selected_type" "${NORD_API}"
-            fi
-            if [[ "${ARG_FILTER_PROTO}" == "true" ]]; then
-                if [[ "${vpn_proto}" == "udp" ]]; then
-                    selected_proto="openvpn_udp"
-                elif [[ "${vpn_proto}" == "tcp" ]]; then
-                    selected_proto="openvpn_tcp"
-                fi
-            fi
-            if [[ -n "${selected_country-}" ]]; then
-                filter+="filters\[country_id\]=${selected_country}&"
-            fi
-            if [[ -n "${selected_type-}" ]]; then
-                filter+="filters\[servers_groups\]\[identifier\]=${selected_type}&"
-            fi
-            if [[ -n "${selected_proto-}" ]]; then
-                filter+="filters\[servers_technologies\]\[identifier\]=${selected_proto}&"
-            fi
-            _get_recommended_host "vpn_server" "${NORD_API}" "${filter}"
+    if [[ "${vpn_provider}" != "custom" ]]; then
+        if ! command -v jq > /dev/null; then
+            echo "Please install jq"
+            exit 1
         fi
-    else
-        _get_server "vpn_server" "${vpn_provider}" "${vpn_proto}"
-    fi
 
-    if [[ -z "${vpn_server}" ]]; then
-        echo "Could not get a VPN server !!!"
-        exit 1
+        if [[ "${vpn_provider}" == "nordvpn" ]]; then
+            if [[ "${ARG_RECOMMEND}" == "true" ]]; then
+                _get_recommended_host "vpn_server" "${NORD_API}"
+            elif [[ "${ARG_RECOMMEND}" == "false" ]]; then
+                if [[ "${ARG_FILTER_COUNTRY}" == "false" ]] &&
+                   [[ "${ARG_FILTER_TYPE}" == "false" ]]; then
+                    _usage "Select filter using one or a combination of --vpn-country or --vpn-type"
+                    exit 1
+                fi
+                if [[ "${ARG_FILTER_COUNTRY}" == "true" ]]; then
+                    _select_country "selected_country" "${NORD_API}"
+                fi
+                if [[ "${ARG_FILTER_TYPE}" == "true" ]]; then
+                    _select_vpn_type "selected_type" "${NORD_API}"
+                fi
+                if [[ "${ARG_FILTER_PROTO}" == "true" ]]; then
+                    if [[ "${vpn_proto}" == "udp" ]]; then
+                        selected_proto="openvpn_udp"
+                    elif [[ "${vpn_proto}" == "tcp" ]]; then
+                        selected_proto="openvpn_tcp"
+                    fi
+                fi
+                if [[ -n "${selected_country-}" ]]; then
+                    filter+="filters\[country_id\]=${selected_country}&"
+                fi
+                if [[ -n "${selected_type-}" ]]; then
+                    filter+="filters\[servers_groups\]\[identifier\]=${selected_type}&"
+                fi
+                if [[ -n "${selected_proto-}" ]]; then
+                    filter+="filters\[servers_technologies\]\[identifier\]=${selected_proto}&"
+                fi
+                _get_recommended_host "vpn_server" "${NORD_API}" "${filter}"
+            fi
+        else
+            _get_server "vpn_server" "${vpn_provider}" "${vpn_proto}"
+        fi
+
+        if [[ -z "${vpn_server}" ]]; then
+            echo "Could not get a VPN server !!!"
+            exit 1
+        fi
     fi
 
     # Build the docker image if local
@@ -497,13 +525,21 @@ main() {
     # Volume mount for Data
     OPT+="\n\t\t-v ${ARG_DIR}:/data \\ "
 
+    # OpenVPN username and password
+    if [[ -n "${ARG_USER-}" ]] && [[ -n "${ARG_PASS}" ]]; then
+        OPT+="\n\t\t-e OPENVPN_USERNAME='${ARG_USER}' \\ "
+        OPT+="\n\t\t-e OPENVPN_PASSWORD='${ARG_PASS}' \\ "
+    elif [[ "${vpn_provider}" == "custom" ]]; then
+        OPT+="\n\t\t-v ${ARG_AUTH}:/custom \\ "
+    else
+        OPT+="\n\t\t-v ${ARG_AUTH}:/control \\ "
+    fi
+
     # OpenVPN Provider
     OPT+="\n\t\t-e OPENVPN_PROVIDER='${ARG_PROVIDER}' \\ "
-    OPT+="\n\t\t-e OPENVPN_CONNECTION='${vpn_server}:${vpn_proto}' \\ "
-
-    # OpenVPN username and password
-    OPT+="\n\t\t-e OPENVPN_USERNAME='${ARG_USER}' \\ "
-    OPT+="\n\t\t-e OPENVPN_PASSWORD='${ARG_PASS}' \\ "
+    if [[ "${vpn_provider}" != "custom" ]]; then
+        OPT+="\n\t\t-e OPENVPN_CONNECTION='${vpn_server}:${vpn_proto}' \\ "
+    fi
 
     # Local network
     OPT+="\n\t\t-e LOCAL_NETWORK='${local_net}' \\ "

@@ -1,4 +1,6 @@
 {
   "hidemyass": "https://vpn.hidemyass.com/vpn-config",
-  "nordvpn": "https://api.nordvpn.com/files/zipv2"
+  "nordvpn": "https://api.nordvpn.com/files/zipv2",
+  "purevpn": "https://s3-us-west-1.amazonaws.com/heartbleed/windows/New+OVPN+Files.zip",
+  "pia": "https://www.privateinternetaccess.com/openvpn"
 }
