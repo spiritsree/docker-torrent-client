@@ -7,7 +7,7 @@ source /usr/local/scripts/functions.sh
 # https://www.tldp.org/LDP/abs/html/abs-guide.html#CASEMODPARAMSUB
 VPN_PROVIDER="${OPENVPN_PROVIDER,,}"
 
-export OPENVPN_CONFIG="/etc/openvpn/"
+export OPENVPN_CONFIG="/etc/openvpn"
 export OPENVPN_TEMPLATE="/etc/templates/openvpn/${VPN_PROVIDER}"
 export OPENVPN_AUTH_FILE="/control/ovpn-auth.txt"
 
@@ -281,4 +281,4 @@ TOR_CONTROL_OPTS="--script-security 2 --up-delay --up /etc/openvpn/startTorrent.
 # start openvpn
 # https://openvpn.net/community-resources/reference-manual-for-openvpn-2-4/
 # shellcheck disable=SC2086
-exec openvpn ${TOR_CONTROL_OPTS} ${OPENVPN_OPTS} --config "${OPENVPN_CONFIG}/default.ovpn" --suppress-timestamps --log-append ${LOG_FILE}
+exec openvpn ${TOR_CONTROL_OPTS} ${OPENVPN_OPTS} --config "${OPENVPN_CONFIG}/default.ovpn" --log-append ${LOG_FILE}
