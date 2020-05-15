@@ -4,7 +4,7 @@
 [![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/spiritsree/docker-torrent-client)](https://hub.docker.com/r/spiritsree/docker-torrent-client)
 [![Docker Cloud Automated build](https://img.shields.io/docker/cloud/automated/spiritsree/docker-torrent-client)](https://hub.docker.com/r/spiritsree/docker-torrent-client)
 [![Docker Pulls](https://img.shields.io/docker/pulls/spiritsree/docker-torrent-client)](https://hub.docker.com/r/spiritsree/docker-torrent-client)
-[![GitHub tag (latest SemVer)(https://img.shields.io/github/v/tag/spiritsree/docker-torrent-client?sort=semver)](https://hub.docker.com/r/spiritsree/docker-torrent-client/tags)
+[![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/spiritsree/docker-torrent-client?sort=semver)](https://hub.docker.com/r/spiritsree/docker-torrent-client/tags)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/spiritsree/docker-torrent-client/blob/master/LICENSE.md)
 
 
