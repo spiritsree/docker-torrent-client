@@ -39,6 +39,8 @@ services:
       - /local/data:/data
     sysctls:
       - net.ipv6.conf.all.disable_ipv6=0
+    environment:
+      - UTORRENT_START_DELAY=45
     network_mode: "service:vpn-client"
     depends_on:
       - vpn-client
