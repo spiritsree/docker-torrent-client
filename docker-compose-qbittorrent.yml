@@ -34,7 +34,7 @@ services:
 
   qbittorrent_container:
     container_name: qbittorrent_container
-    image: docker-client-qbittorrent:latest
+    image: spiritsree/docker-client-qbittorrent:latest
     volumes:
       - /local/data:/data
     sysctls:

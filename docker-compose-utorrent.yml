@@ -34,7 +34,7 @@ services:
 
   utorrent_container:
     container_name: utorrent_container
-    image: docker-client-utorrent:latest
+    image: spiritsree/docker-client-utorrent:latest
     volumes:
       - /local/data:/data
     sysctls:
