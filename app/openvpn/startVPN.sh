@@ -201,6 +201,12 @@ if [[ "${FIREWALL_ENABLED,,}" == "true" ]]; then
     echo "[FIREWALL] Allowing torrent peer port ${TOR_PEER_PORT}..." >> ${LOG_FILE}
     _firewall_allow_port "${TOR_PEER_PORT}" >> ${LOG_FILE}
 
+    # Allow webproxy port if enabled
+    if [[ "${WEBPROXY_ENABLED,,}" == "true" ]]; then
+        echo "[FIREWALL] Allowing webproxy port ${WEBPROXY_PORT}..." >> ${LOG_FILE}
+        _firewall_allow_port "${WEBPROXY_PORT}" >> ${LOG_FILE}
+    fi
+
     # Allow client RPC port from gateway
     if [[ -n "${TOR_RPC_PORT-}" ]]; then
         if [[ "${FIREWALL_ALLOW_GW_CIDR,,}" == "true" ]]; then

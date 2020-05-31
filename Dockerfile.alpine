@@ -12,6 +12,7 @@ RUN echo "**** add repositories ****" \
     && apk add --no-cache dumb-init > /dev/null \
     && apk add --no-cache openvpn > /dev/null \
     && apk add --no-cache transmission-daemon transmission-cli > /dev/null \
+    && apk add --no-cache tinyproxy > /dev/null \
     && apk add --no-cache boost-python3@edge py3-wheel@edge deluge@testing > /dev/null \
     && apk add --no-cache deluge@testing > /dev/null \
     && apk add --no-cache ip6tables ufw@testing > /dev/null \
@@ -24,6 +25,7 @@ ADD ./app/tmpls /etc/templates
 ADD ./app/openvpn /etc/openvpn
 ADD ./app/transmission /etc/transmission
 ADD ./app/deluge /etc/deluge
+ADD ./app/tinyproxy /etc/tinyproxy
 
 ENV CREATE_TUN_DEVICE="true" \
     OPENVPN_USERNAME="NONE" \
@@ -69,13 +71,17 @@ ENV CREATE_TUN_DEVICE="true" \
     ENABLE_FILE_LOGGING=true \
     HEALTH_CHECK_HOST=www.google.com \
     FIREWALL_ENABLED=false \
-    FIREWALL_ALLOW_GW_CIDR=false
+    FIREWALL_ALLOW_GW_CIDR=false \
+    WEBPROXY_ENABLED=false \
+    WEBPROXY_PORT=8888 \
+    WEBPROXY_USER= \
+    WEBPROXY_PASSWORD=
 
 VOLUME /data
 VOLUME /control
 
 HEALTHCHECK --interval=5m --timeout=15s --start-period=30s CMD /usr/local/scripts/health.sh
 
-EXPOSE 9091
+EXPOSE 9091 8888
 
 CMD ["dumb-init", "/etc/openvpn/startVPN.sh"]

@@ -546,6 +546,7 @@ main() {
 
     # Port
     OPT+="\n\t\t-p 9091:9091 \\ "
+    OPT+="\n\t\t-p 8888:8888 \\ "
 
     # Docker Image to run
     if [[ "${ARG_LOCAL}" == "true" ]]; then

@@ -318,3 +318,14 @@ Variable | Description | Default |
 `FIREWALL_ENABLED` | Enables firewall | `false` |
 `FIREWALL_ALLOW_GW_CIDR` | Add rules for Gateway network CIDR | `false` |
 `FIREWALL_PORTS_TO_ALLOW` | Ports to allow in firewall (comma separated) | |
+
+## Webproxy
+
+Environment variables used for tinyproxy config
+
+Variable | Description | Default |
+:--------|:------------|:--------|
+`WEBPROXY_ENABLED` | Enable webproxy | `false` |
+`WEBPROXY_PORT` | Webproxy port to listen on | `8888` |
+`WEBPROXY_USER` | Webproxy user for basic auth | |
+`WEBPROXY_PASSWORD` | Webproxy password for basic auth | |

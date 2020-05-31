@@ -5,6 +5,7 @@
 * Support custom provider by the user.
 * Support PIA and PureVPN VPN Provider and config updater for the same
 * NordVPN to use IP instead of hostname
+* Added tinyproxy for web proxying
 
 ## Version 0.4.0
 

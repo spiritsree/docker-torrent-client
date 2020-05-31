@@ -100,14 +100,15 @@ For more details visit [Accessing the UI](./doc/web-ui.md).
 
 ## Documentation
 
-* [Usage](./doc/usage.md)
+* [Accessing the UI](./doc/web-ui.md)
+* [Container Networking](./doc/networking.md)
+* [Debugging](./doc/debug.md)
+* [Docker Options](./doc/docker.md)
+* [Proxy Support](./doc/tinyproxy.md)
+* [References](./doc/references.md)
 * [Supported Environment Variables](./doc/env.md)
 * [Supported VPN Providers](./doc/supported_vpn.md)
-* [Accessing the UI](./doc/web-ui.md)
-* [Docker Options](./doc/docker.md)
-* [Debugging](./doc/debug.md)
-* [Container Networking](./doc/networking.md)
-* [References](./doc/references.md)
+* [Usage](./doc/usage.md)
 
 ## License
 

@@ -4,7 +4,11 @@
 # shellcheck disable=SC1091
 source /etc/templates/env.sh
 
-if [[ "${TOR_CLIENT_ENABLED}" == "true" ]]; then
+if [[ "${WEBPROXY_ENABLED,,}" == "true" ]]; then
+    /etc/tinyproxy/start.sh "$@"
+fi
+
+if [[ "${TOR_CLIENT_ENABLED,,}" == "true" ]]; then
     if [[ "${TOR_CLIENT}" == "transmission" ]]; then
         /etc/transmission/start.sh "$@"
     elif [[ "${TOR_CLIENT}" == "deluge" ]]; then

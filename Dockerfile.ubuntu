@@ -18,6 +18,7 @@ RUN apt-get update > /dev/null \
     && apt-get -y install --no-install-recommends dumb-init > /dev/null \
     && apt-get -y install --no-install-recommends deluged deluge-web deluge-console > /dev/null \
     && apt-get -y install --no-install-recommends transmission-cli transmission-common transmission-daemon > /dev/null \
+    && apt-get -y install --no-install-recommends tinyproxy > /dev/null \
     && apt-get -y install --no-install-recommends openvpn > /dev/null \
     && bash /usr/local/scripts/install-app.sh \
     && echo "**** cleanup ****" \
@@ -28,6 +29,7 @@ ADD ./app/tmpls /etc/templates
 ADD ./app/openvpn /etc/openvpn
 ADD ./app/transmission /etc/transmission
 ADD ./app/deluge /etc/deluge
+ADD ./app/tinyproxy /etc/tinyproxy
 
 ENV CREATE_TUN_DEVICE="true" \
     OPENVPN_USERNAME="NONE" \
@@ -73,13 +75,17 @@ ENV CREATE_TUN_DEVICE="true" \
     ENABLE_FILE_LOGGING=true \
     HEALTH_CHECK_HOST=www.google.com \
     FIREWALL_ENABLED=false \
-    FIREWALL_ALLOW_GW_CIDR=false
+    FIREWALL_ALLOW_GW_CIDR=false \
+    WEBPROXY_ENABLED=false \
+    WEBPROXY_PORT=8888 \
+    WEBPROXY_USER= \
+    WEBPROXY_PASSWORD=
 
 VOLUME /data
 VOLUME /control
 
 HEALTHCHECK --interval=5m --timeout=15s --start-period=30s CMD /usr/local/scripts/health.sh
 
-EXPOSE 9091
+EXPOSE 9091 8888
 
 CMD ["dumb-init", "/etc/openvpn/startVPN.sh"]
