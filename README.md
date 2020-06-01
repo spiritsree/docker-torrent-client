@@ -52,6 +52,8 @@ Optional Arguments (O_ARGS):
     --proto <UDP|TCP|STRONG-TCP|STRONG-UDP>    VPN connection proto (Default: UDP)
     --vpn-country                              Recommend based on country (only for NordVPN if --no-recommend)
     --vpn-type                                 Recommend based on Server Type (only for NordVPN if --no-recommend)
+    --disable-torrent                          Do not enable torrent client
+    --enable-proxy                             Enable webproxy
 
 Examples:
     setup.sh -h

@@ -23,6 +23,8 @@ ARG_RECOMMEND='true'
 ARG_FILTER_COUNTRY='false'
 ARG_FILTER_TYPE='false'
 ARG_FILTER_PROTO='true'
+ARG_TORRENT='true'
+ARG_PROXY='false'
 ARG_PROTO='UDP'
 ARG_AUTH=''
 ARG_IMAGE='spiritsree/docker-torrent-client:latest-ubuntu'
@@ -72,6 +74,8 @@ _usage() {
     echo '    --proto <UDP|TCP|STRONG-TCP|STRONG-UDP>    VPN connection proto (Default: UDP)'
     echo '    --vpn-country                              Recommend based on country (only for NordVPN if --no-recommend)'
     echo '    --vpn-type                                 Recommend based on Server Type (only for NordVPN if --no-recommend)'
+    echo '    --disable-torrent                          Do not enable torrent client'
+    echo '    --enable-proxy                             Enable webproxy'
     echo
     echo 'Examples:'
     echo "    ${SCRIPT_NAME} -h"
@@ -117,6 +121,12 @@ _getOptions() {
                         ;;
                     vpn-type)
                         ARG_FILTER_TYPE="true"
+                        ;;
+                    disable-torrent)
+                        ARG_TORRENT='false'
+                        ;;
+                    enable-proxy)
+                        ARG_PROXY='true'
                         ;;
                     proto)
                         ARG_PROTO="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
@@ -544,9 +554,22 @@ main() {
     # Local network
     OPT+="\n\t\t-e LOCAL_NETWORK='${local_net}' \\ "
 
+    # Diable torrent client
+    if [[ "${ARG_TORRENT}" == "false" ]]; then
+        OPT+="\n\t\t-e TOR_CLIENT_ENABLED=false \\ "
+    fi
+
+    # Enable webproxy
+    if [[ "${ARG_PROXY}" == "true" ]]; then
+        OPT+="\n\t\t-e WEBPROXY_ENABLED=true \\ "
+    fi
+
     # Port
     OPT+="\n\t\t-p 9091:9091 \\ "
-    OPT+="\n\t\t-p 8888:8888 \\ "
+    # Enable proxy port
+    if [[ "${ARG_PROXY}" == "true" ]]; then
+        OPT+="\n\t\t-p 8888:8888 \\ "
+    fi
 
     # Docker Image to run
     if [[ "${ARG_LOCAL}" == "true" ]]; then

@@ -76,6 +76,18 @@ fi
 # Authfile permission user access
 chmod 600 "${OPENVPN_AUTH_FILE}"
 
+# Check if custom config auth file exist
+if [[ "${VPN_PROVIDER}" == "custom" ]] ; then
+    custom_auth_file=$(grep 'auth-user-pass' "${OPENVPN_CONFIG}/default.ovpn" | awk '{ print $2 }')
+    if [[ -z "${custom_auth_file}" ]]; then
+        echo "[OPENVPN] Custom config doesn't have auth config..." >> ${LOG_FILE}
+        exit 1
+    elif [[ ! -f "${custom_auth_file}" ]]; then
+        echo "[OPENVPN] Custom config auth file doesn't exist..." >> ${LOG_FILE}
+        exit 1
+    fi
+fi
+
 # CheckHostname: validating OPENVPN_HOSTNAME
 if [[ "${OPENVPN_HOSTNAME}" == "NONE" ]] || [[ -z "${OPENVPN_HOSTNAME}" ]]; then
     # Getting OPENVPN_CONNECTION from OPENVPN_CONNECTION
