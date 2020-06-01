@@ -30,7 +30,7 @@ _update_server_json() {
         jq -c --argjson servers "$(jq -r -c --slurp --raw-input 'split("\n")[:-1]' "${server_file}")" ".${json_key_name} = \$servers" "${main_json_file}" > "${tmp_file}"
     else
         vpn_proto=$(_lowercase "${proto}")
-        jq -c --argjson servers "$(jq -r -c --slurp --raw-input 'split("\n")[:-1]' "${server_file}")" ".${json_key_name}.${vpn_proto} = \$servers" "${main_json_file}" > "${tmp_file}"
+        jq -c --argjson servers "$(jq -r -c --slurp --raw-input 'split("\n")[:-1]' "${server_file}")" ".${json_key_name}.\"${vpn_proto}\" = \$servers" "${main_json_file}" > "${tmp_file}"
     fi
     mv "${tmp_file}" "${main_json_file}"
 }
@@ -40,6 +40,7 @@ _update_config() {
     local config_dir=$1
     local vpn_provider=$2
     local proto=$3
+    local json_update=${4-true}
     local status="success"
     local tmp_host_file parent_config_path
     tmp_host_file=$(mktemp /tmp/hosts.XXXXXXXX)
@@ -52,7 +53,10 @@ _update_config() {
     fi
     pushd "${config_dir}" > /dev/null || exit
     grep -h 'remote ' -- *.ovpn | awk '{ print $2 }' | sort -u > "${tmp_host_file}"
-    _update_server_json "${tmp_host_file}" "${vpn_provider}" "${proto}" "${parent_config_path}"
+    if [[ "${json_update}" == "true" ]]; then
+        _update_server_json "${tmp_host_file}" "${vpn_provider}" "${proto}" "${parent_config_path}"
+    fi
+    sed -i 's/\r$//g' -- *.ovpn
     sed -i 's/^auth-user-pass$/auth-user-pass \/control\/ovpn-auth.txt/' -- *.ovpn
     sed -i -rE 's/^remote .+ ([[:digit:]]+)$/remote {{ .Env.OPENVPN_HOSTNAME }} \1/' -- *.ovpn
     if [[ ! -d "${parent_config_path}/${vpn_provider}/${proto}" ]]; then
@@ -82,14 +86,26 @@ _update_config() {
 _pre_config_update() {
     local vpn_provider=$1
     local target_dir=$2
+    local target_protocol=$3
+    local json_update=$4
 
     pushd "${target_dir}" > /dev/null || exit
-    pushd tcp > /dev/null || exit
-    _update_config "$(pwd)" "${vpn_provider}" 'tcp'
-    popd > /dev/null || exit
-    pushd udp > /dev/null || exit
-    _update_config "$(pwd)" "${vpn_provider}" 'udp'
-    popd > /dev/null || exit
+    if [[ -z "${target_protocol-}" ]]; then
+        pushd tcp > /dev/null || exit
+        _update_config "$(pwd)" "${vpn_provider}" 'tcp'
+        popd > /dev/null || exit
+        pushd udp > /dev/null || exit
+        _update_config "$(pwd)" "${vpn_provider}" 'udp'
+        popd > /dev/null || exit
+    else
+        pushd "${target_protocol}" > /dev/null || exit
+        if [[ -z "${json_update-}" ]]; then
+            _update_config "$(pwd)" "${vpn_provider}" "${target_protocol}"
+        else
+            _update_config "$(pwd)" "${vpn_provider}" "${target_protocol}" "${json_update}"
+        fi
+        popd > /dev/null || exit
+    fi
     popd > /dev/null || exit
 }
 
@@ -148,4 +164,57 @@ _update_nordvpn_config() {
     find . -name "*tcp*.ovpn" -exec mv {} "${target_dir}/tcp/" \;
     popd > /dev/null || exit
     _pre_config_update "${vpn_provider}" "${target_dir}"
+}
+
+# Get PureVPN Config and update
+_update_purevpn_config() {
+    local vpn_provider=$1
+    local config_url=$2
+    local tmp_dir target_dir
+    echo "Getting PureVPN configs using ${config_url}..."
+    tmp_dir=$(mktemp -d /tmp/vpn.XXXXXXXX)
+    target_dir=$(mktemp -d /tmp/target.XXXXXXXX)
+    mkdir "${target_dir}"/{tcp,udp}
+    pushd "${tmp_dir}" > /dev/null || exit
+    curl -4 -sSL "${config_url}" -o purevpn.zip || exit
+    unzip -q purevpn.zip || exit
+    find . -name "*udp*.ovpn" -exec mv {} "${target_dir}/udp/" \;
+    find . -name "*tcp*.ovpn" -exec mv {} "${target_dir}/tcp/" \;
+    popd > /dev/null || exit
+    _pre_config_update "${vpn_provider}" "${target_dir}"
+}
+
+# Get PIA (PrivateInternetAccess) Config and update
+_update_pia_config() {
+    local vpn_provider=$1
+    local config_url=$2
+    local tmp_dir target_dir
+    local files=( "openvpn.zip" "openvpn-ip.zip" "openvpn-strong.zip" "openvpn-tcp.zip" "openvpn-strong-tcp.zip" )
+    echo "Getting PIA configs using ${config_url}..."
+    tmp_dir=$(mktemp -d /tmp/vpn.XXXXXXXX)
+    target_dir=$(mktemp -d /tmp/target.XXXXXXXX)
+    mkdir "${target_dir}"/{tcp,udp,ip-udp,strong-udp,strong-tcp}
+    pushd "${tmp_dir}" > /dev/null || exit
+    for each_file in "${files[@]}"; do
+        rm -f -- *
+        curl -4 -sSL "${config_url}/${each_file}" -o "${each_file}" || exit
+        unzip -o -q "${each_file}" || exit
+        if [[ "${each_file}" == "openvpn.zip" ]]; then
+             find . -name "*.ovpn*" -exec bash -c 'mv "${1}" "${0}/${1// /_}"' "${target_dir}/udp" {} \;
+            _pre_config_update "${vpn_provider}" "${target_dir}" "udp"
+        elif [[ "${each_file}" == "openvpn-ip.zip" ]]; then
+            find . -name "*.ovpn*" -exec bash -c 'mv "${1}" "${0}/${1// /_}"' "${target_dir}/ip-udp" {} \;
+            _pre_config_update "${vpn_provider}" "${target_dir}" "ip-udp"
+        elif [[ "${each_file}" == "openvpn-strong.zip" ]]; then
+            find . -name "*.ovpn*" -exec bash -c 'mv "${1}" "${0}/${1// /_}"' "${target_dir}/strong-udp" {} \;
+            _pre_config_update "${vpn_provider}" "${target_dir}" "strong-udp"
+        elif [[ "${each_file}" == "openvpn-tcp.zip" ]]; then
+            find . -name "*.ovpn*" -exec bash -c 'mv "${1}" "${0}/${1// /_}"' "${target_dir}/tcp" {} \;
+            _pre_config_update "${vpn_provider}" "${target_dir}" "tcp"
+        elif [[ "${each_file}" == "openvpn-strong-tcp.zip" ]]; then
+            find . -name "*.ovpn*" -exec bash -c 'mv "${1}" "${0}/${1// /_}"' "${target_dir}/strong-tcp" {} \;
+            _pre_config_update "${vpn_provider}" "${target_dir}" "strong-tcp"
+        fi
+    done
+    popd > /dev/null || exit
 }

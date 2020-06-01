@@ -4,6 +4,12 @@
 # shellcheck disable=SC1091
 source /usr/local/scripts/functions.sh
 
+DEBUG="false"
+
+if [[ "${DEBUG}" = "true" ]]; then
+    set -x
+fi
+
 # Global Settings
 export URL_CONFIG="/config/url.json"
 
@@ -28,6 +34,10 @@ if [[ "${VPN_PROVIDER,,}" == "hidemyass" ]]; then
     _update_hidemyass_config "${VPN_PROVIDER,,}" "${PROVIDER_URL}"
 elif [[ "${VPN_PROVIDER,,}" == "nordvpn" ]]; then
     _update_nordvpn_config "${VPN_PROVIDER,,}" "${PROVIDER_URL}"
+elif [[ "${VPN_PROVIDER,,}" == "purevpn" ]]; then
+    _update_purevpn_config "${VPN_PROVIDER,,}" "${PROVIDER_URL}"
+elif [[ "${VPN_PROVIDER,,}" == "pia" ]]; then
+    _update_pia_config "${VPN_PROVIDER,,}" "${PROVIDER_URL}"
 fi
 
 rm -rf "${TMP_DIR}"

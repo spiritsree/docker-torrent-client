@@ -52,7 +52,7 @@ if [[ -z "${PROTO-}" ]]; then
     jq -c --argjson servers "$(jq -r -c --slurp --raw-input 'split("\n")[:-1]' "${SERVER_FILE}")" ".${json_key_name} = \$servers" "${VPN_SERVER_FILE}" > "${TMP_FILE}"
 else
     vpn_proto=$(_lowercase "${PROTO}")
-    jq -c --argjson servers "$(jq -r -c --slurp --raw-input 'split("\n")[:-1]' "${SERVER_FILE}")" ".${json_key_name}.${vpn_proto} = \$servers" "${VPN_SERVER_FILE}" > "${TMP_FILE}"
+    jq -c --argjson servers "$(jq -r -c --slurp --raw-input 'split("\n")[:-1]' "${SERVER_FILE}")" ".${json_key_name}.\"${vpn_proto}\" = \$servers" "${VPN_SERVER_FILE}" > "${TMP_FILE}"
 fi
 
 mv "${TMP_FILE}" "${VPN_SERVER_FILE}"

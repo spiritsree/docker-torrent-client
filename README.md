@@ -1,10 +1,10 @@
 # Docker Torrent Client
 
-[![CircleCI](https://circleci.com/gh/spiritsree/docker-torrent-client.svg?style=svg)](https://app.circleci.com/pipelines/github/spiritsree/docker-torrent-client)
-[![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/spiritsree/docker-torrent-client)](https://hub.docker.com/repository/docker/spiritsree/docker-torrent-client)
-[![Docker Cloud Automated build](https://img.shields.io/docker/cloud/automated/spiritsree/docker-torrent-client)](https://hub.docker.com/repository/docker/spiritsree/docker-torrent-client)
-[![Docker Pulls](https://img.shields.io/docker/pulls/spiritsree/docker-torrent-client)](https://hub.docker.com/repository/docker/spiritsree/docker-torrent-client)
-![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/spiritsree/docker-torrent-client?sort=semver)
+[![CircleCI](https://circleci.com/gh/spiritsree/docker-torrent-client.svg?style=svg&circle-token=6909ce52d267d42d26f552de73de7aa2768fb6d4)](https://app.circleci.com/pipelines/github/spiritsree/docker-torrent-client)
+[![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/spiritsree/docker-torrent-client)](https://hub.docker.com/r/spiritsree/docker-torrent-client)
+[![Docker Cloud Automated build](https://img.shields.io/docker/cloud/automated/spiritsree/docker-torrent-client)](https://hub.docker.com/r/spiritsree/docker-torrent-client)
+[![Docker Pulls](https://img.shields.io/docker/pulls/spiritsree/docker-torrent-client)](https://hub.docker.com/r/spiritsree/docker-torrent-client)
+[![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/spiritsree/docker-torrent-client?sort=semver)](https://hub.docker.com/r/spiritsree/docker-torrent-client/tags)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/spiritsree/docker-torrent-client/blob/master/LICENSE.md)
 
 
@@ -37,25 +37,30 @@ Usage:
     setup.sh M_ARGS [O_ARGS]
 
 Mandatory Arguments (M_ARGS):
-    -u|--user <username>              VPN Username
-    -p|--pass <password>              VPN Password
-    -v|--vpn-provider <vpn-provider>  VPN Provider (e.g: HideMe)
+    -v|--vpn-provider <vpn-provider>           VPN Provider (e.g: HideMe)
 
 Optional Arguments (O_ARGS):
-    -h|--help                   Print usage
-    -o|--os <ubuntu|alpine>     OS type, Default: ubuntu
-    -d|--data-dir <local-dir>   Local dir to mount for data (This should be added in Docker File Sharing)
-    -l|--local                  Build docker image locally
-    -i|--image <docker-image>   Docker Image (Default: spiritsree/docker-torrent-client:latest-ubuntu)
-    --proto <UDP|TCP>           VPN connection proto UDP or TCP (Default: UDP)
-    -r|--no-recomment           Do not recomment best server (only for NordVPN. Need to provide a filter to search on)
-    --vpn-country               Recomment based on country (only for NordVPN if --no-recomment)
-    --vpn-type                  Recomment based on Server Type (only for NordVPN if --no-recomment)
+    -h|--help                                  Print usage
+    -u|--user <username>                       VPN Username
+    -p|--pass <password>                       VPN Password
+    -o|--os <ubuntu|alpine>                    OS type, Default: ubuntu
+    -d|--data-dir <local-dir>                  Local dir to mount for data (Default: /data)
+    -a|--auth-dir <local-dir>                  Auth/Custom dir to mount with VPN credentials
+    -l|--local                                 Build docker image locally
+    -i|--image <docker-image>                  Docker Image (Default: spiritsree/docker-torrent-client:latest-ubuntu)
+    -r|--no-recommend                          Do not recommend best server use filters instead (only for NordVPN)
+    --proto <UDP|TCP|STRONG-TCP|STRONG-UDP>    VPN connection proto (Default: UDP)
+    --vpn-country                              Recommend based on country (only for NordVPN if --no-recommend)
+    --vpn-type                                 Recommend based on Server Type (only for NordVPN if --no-recommend)
+    --disable-torrent                          Do not enable torrent client
+    --enable-proxy                             Enable webproxy
 
 Examples:
     setup.sh -h
+    setup.sh -v NordVPN
     setup.sh -u user -p password -v HideMe -i spiritsree/docker-torrent-client:latest-ubuntu
     setup.sh -u user -p password -v FastestVPN --proto tcp
+
 ```
 
 Using docker pull use the following command.
@@ -97,14 +102,15 @@ For more details visit [Accessing the UI](./doc/web-ui.md).
 
 ## Documentation
 
-* [Usage](./doc/usage.md)
+* [Accessing the UI](./doc/web-ui.md)
+* [Container Networking](./doc/networking.md)
+* [Debugging](./doc/debug.md)
+* [Docker Options](./doc/docker.md)
+* [Proxy Support](./doc/tinyproxy.md)
+* [References](./doc/references.md)
 * [Supported Environment Variables](./doc/env.md)
 * [Supported VPN Providers](./doc/supported_vpn.md)
-* [Accessing the UI](./doc/web-ui.md)
-* [Docker Options](./doc/docker.md)
-* [Debugging](./doc/debug.md)
-* [Container Networking](./doc/networking.md)
-* [References](./doc/references.md)
+* [Usage](./doc/usage.md)
 
 ## License
 

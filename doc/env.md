@@ -43,6 +43,10 @@ With `OPENVPN_HOSTNAME` as an option you need to pass `OPENVPN_PROTO` as well if
 
 `OPENVPN_CONNECTION` will have the format of `<server-name>:<proto>`.
 
+if `OPENVPN_PROVIDER` is `custom` then you don't need to provider any of `OPENVPN_CONNECTION` or `OPENVPN_HOSTNAME` and the config will be taken from `/custom/default.ovpn`.
+
+For PIA (PrivateInternetAccess) VPN you can use `STRONG-UDP` or `STRONG-TCP` for better encryption, in addition to `UDP` and `TCP` protocol.
+
 ## Transmission
 
 You can refer [transmission config](https://github.com/transmission/transmission/wiki/Editing-Configuration-Files) for details.
@@ -314,3 +318,14 @@ Variable | Description | Default |
 `FIREWALL_ENABLED` | Enables firewall | `false` |
 `FIREWALL_ALLOW_GW_CIDR` | Add rules for Gateway network CIDR | `false` |
 `FIREWALL_PORTS_TO_ALLOW` | Ports to allow in firewall (comma separated) | |
+
+## Webproxy
+
+Environment variables used for tinyproxy config
+
+Variable | Description | Default |
+:--------|:------------|:--------|
+`WEBPROXY_ENABLED` | Enable webproxy | `false` |
+`WEBPROXY_PORT` | Webproxy port to listen on | `8888` |
+`WEBPROXY_USER` | Webproxy user for basic auth | |
+`WEBPROXY_PASSWORD` | Webproxy password for basic auth | |

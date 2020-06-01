@@ -1,7 +1,7 @@
 # supported docker-compose version 1.25.5
 version: "3.8"
 services:
-  torrent-client:
+  vpn-client:
     container_name: docker_torrent_client
     image: spiritsree/docker-torrent-client:latest-alpine
     cap_add:
@@ -9,19 +9,20 @@ services:
     ports:
       - "9091:9091"
       - "8888:8888"
+      - "8080:8080"
     dns:
       - 8.8.8.8
       - 1.1.1.1
-    sysctls:
-      - net.ipv6.conf.all.disable_ipv6=0
     volumes:
       - /local/data:/data
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
     environment:
-      OPENVPN_PROVIDER: HideMe
+      OPENVPN_PROVIDER: 'HideMe'
       OPENVPN_CONNECTION: 'free-ca.hide.me:udp'
-      # these will be picked up from host env vars
-      OPENVPN_USERNAME:
-      OPENVPN_PASSWORD:
+      OPENVPN_USERNAME: ''
+      OPENVPN_PASSWORD: ''
+      TOR_CLIENT_ENABLED: 'false'
       LOCAL_NETWORK: 192.168.1.0/24
     restart: on-failure
     # Below are only for swarm deploy. Ignored for docker-compose up
@@ -31,3 +32,16 @@ services:
         condition: on-failure
         delay: 5s
         max_attempts: 3
+
+  qbittorrent_container:
+    container_name: qbittorrent_container
+    image: spiritsree/docker-client-qbittorrent:latest
+    volumes:
+      - /local/data:/data
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+    environment:
+      - QBITTORRENT_START_DELAY=45
+    network_mode: "service:vpn-client"
+    depends_on:
+      - vpn-client
