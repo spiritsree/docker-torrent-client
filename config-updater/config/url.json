@@ -2,5 +2,6 @@
   "hidemyass": "https://vpn.hidemyass.com/vpn-config",
   "nordvpn": "https://api.nordvpn.com/files/zipv2",
   "purevpn": "https://s3-us-west-1.amazonaws.com/heartbleed/windows/New+OVPN+Files.zip",
-  "pia": "https://www.privateinternetaccess.com/openvpn"
+  "pia": "https://www.privateinternetaccess.com/openvpn",
+  "vyprvpn": "https://support.vyprvpn.com/hc/article_attachments/360052617332/Vypr_OpenVPN_20200320.zip"
 }

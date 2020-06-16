@@ -59,6 +59,7 @@ _update_config() {
     sed -i 's/\r$//g' -- *.ovpn
     sed -i 's/^auth-user-pass$/auth-user-pass \/control\/ovpn-auth.txt/' -- *.ovpn
     sed -i -rE 's/^remote .+ ([[:digit:]]+)$/remote {{ .Env.OPENVPN_HOSTNAME }} \1/' -- *.ovpn
+    sed -i -rE 's/^verify-x509-name .+ name$/verify-x509-name {{ .Env.OPENVPN_HOSTNAME }} name/' -- *.ovpn
     if [[ ! -d "${parent_config_path}/${vpn_provider}/${proto}" ]]; then
         mkdir -p "${parent_config_path}/${vpn_provider}/${proto}"
     fi
@@ -217,4 +218,22 @@ _update_pia_config() {
         fi
     done
     popd > /dev/null || exit
+}
+
+# Get VyprVPN configs
+_update_vyprvpn_config() {
+    local vpn_provider=$1
+    local config_url=$2
+    local extra_pattern=$3
+    local tmp_dir target_dir
+    echo "Getting VyprVPN configs using ${config_url}..."
+    tmp_dir=$(mktemp -d /tmp/vpn.XXXXXXXX)
+    target_dir=$(mktemp -d /tmp/target.XXXXXXXX)
+    mkdir "${target_dir}"/{tcp,udp}
+    pushd "${tmp_dir}" > /dev/null || exit
+    curl -4 -sSL "${config_url}" -o vyprvpn.zip || exit
+    unzip -q vyprvpn.zip || exit
+    find . -name "*.ovpn" -regex ".*${extra_pattern}.*" -exec bash -c 'mv "${1}" "${0}/$(basename ${1// /_})"' "${target_dir}/udp" {} \;
+    popd > /dev/null || exit
+    _pre_config_update "${vpn_provider}" "${target_dir}" "udp"
 }
