@@ -40,6 +40,8 @@ elif [[ "${VPN_PROVIDER,,}" == "pia" ]]; then
     _update_pia_config "${VPN_PROVIDER,,}" "${PROVIDER_URL}"
 elif [[ "${VPN_PROVIDER,,}" == "vyprvpn" ]]; then
     _update_vyprvpn_config "${VPN_PROVIDER,,}" "${PROVIDER_URL}" "256"
+elif [[ "${VPN_PROVIDER,,}" == "surfshark" ]]; then
+    _update_surfshark_config "${VPN_PROVIDER,,}" "${PROVIDER_URL}"
 fi
 
 rm -rf "${TMP_DIR}"

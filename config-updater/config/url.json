@@ -1,7 +1,8 @@
 {
   "hidemyass": "https://vpn.hidemyass.com/vpn-config",
   "nordvpn": "https://api.nordvpn.com/files/zipv2",
-  "purevpn": "https://s3-us-west-1.amazonaws.com/heartbleed/windows/New+OVPN+Files.zip",
   "pia": "https://www.privateinternetaccess.com/openvpn",
+  "purevpn": "https://s3-us-west-1.amazonaws.com/heartbleed/windows/New+OVPN+Files.zip",
+  "surfshark": "https://account.surfshark.com/api/v1/server/configurations",
   "vyprvpn": "https://support.vyprvpn.com/hc/article_attachments/360052617332/Vypr_OpenVPN_20200320.zip"
 }

@@ -5,4 +5,5 @@
 * [NordVPN](https://nordvpn.com/servers/tools/)
 * [PIA](https://www.privateinternetaccess.com/helpdesk/kb/articles/where-can-i-find-your-ovpn-files)
 * [PureVPN](https://support.purevpn.com/openvpn-files)
+* [SurfShark](https://support.surfshark.com/hc/en-us/articles/360011051133-How-to-set-up-OpenVPN-using-Linux-Terminal)
 * [VyprVPN](https://support.vyprvpn.com/hc/en-us/articles/360038096131-Where-can-I-find-the-OpenVPN-files-)

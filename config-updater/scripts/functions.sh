@@ -220,7 +220,7 @@ _update_pia_config() {
     popd > /dev/null || exit
 }
 
-# Get VyprVPN configs
+# Get VyprVPN configs and update
 _update_vyprvpn_config() {
     local vpn_provider=$1
     local config_url=$2
@@ -236,4 +236,22 @@ _update_vyprvpn_config() {
     find . -name "*.ovpn" -regex ".*${extra_pattern}.*" -exec bash -c 'mv "${1}" "${0}/$(basename ${1// /_})"' "${target_dir}/udp" {} \;
     popd > /dev/null || exit
     _pre_config_update "${vpn_provider}" "${target_dir}" "udp"
+}
+
+# Get SurfShark configs and update
+_update_surfshark_config() {
+    local vpn_provider=$1
+    local config_url=$2
+    local tmp_dir target_dir
+    echo "Getting SurfShark configs using ${config_url}..."
+    tmp_dir=$(mktemp -d /tmp/vpn.XXXXXXXX)
+    target_dir=$(mktemp -d /tmp/target.XXXXXXXX)
+    mkdir "${target_dir}"/{tcp,udp}
+    pushd "${tmp_dir}" > /dev/null || exit
+    curl -4 -sSL "${config_url}" -o surfshark.zip || exit
+    unzip -q surfshark.zip || exit
+    find . -name "*udp*.ovpn" -exec mv {} "${target_dir}/udp/" \;
+    find . -name "*tcp*.ovpn" -exec mv {} "${target_dir}/tcp/" \;
+    popd > /dev/null || exit
+    _pre_config_update "${vpn_provider}" "${target_dir}"
 }

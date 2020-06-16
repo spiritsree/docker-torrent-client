@@ -12,6 +12,7 @@ You need to also pass `OPENVPN_HOSTNAME` and `OPENVPN_PROTO` or `OPENVPN_CONNECT
 * NordVPN (Check [Nord API](nordvpn_api.md) for more details on the Nord VPN Public API)
 * PIA
 * PureVPN
+* SurfShark
 * VyprVPN
 
 
