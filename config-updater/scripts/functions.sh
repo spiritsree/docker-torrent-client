@@ -78,6 +78,13 @@ _update_config() {
             sed -i 's/ping-restart 0/ping-exit 60/g' default.ovpn.tmpl
             sed -i 's/ping-timer-rem//g' default.ovpn.tmpl
         fi
+        ca_conf=$(grep -E '^ca .*' default.ovpn.tmpl)
+        if [[ -n "${ca_conf}" ]]; then
+            ca_file=$(echo "${ca_conf}" | awk '{ print $2 }')
+            mv "${ca_file}" "${parent_config_path}/${vpn_provider}/${proto}/${ca_file}"
+            sed -i -rE "s/^ca .*?$/ca \/etc\/templates\/openvpn\/${vpn_provider}\/${proto}\/"${ca_file}"/" -- default.ovpn.tmpl
+        fi
+
         mv default.ovpn.tmpl "${parent_config_path}/${vpn_provider}/${proto}/default.ovpn.tmpl"
     fi
     popd > /dev/null || exit
@@ -254,4 +261,21 @@ _update_surfshark_config() {
     find . -name "*tcp*.ovpn" -exec mv {} "${target_dir}/tcp/" \;
     popd > /dev/null || exit
     _pre_config_update "${vpn_provider}" "${target_dir}"
+}
+
+# Get IPVanish configs and update
+_update_ipvanish_config() {
+    local vpn_provider=$1
+    local config_url=$2
+    local tmp_dir target_dir
+    echo "Getting IPVanish configs using ${config_url}..."
+    tmp_dir=$(mktemp -d /tmp/vpn.XXXXXXXX)
+    target_dir=$(mktemp -d /tmp/target.XXXXXXXX)
+    mkdir "${target_dir}"/{tcp,udp}
+    pushd "${tmp_dir}" > /dev/null || exit
+    curl -4 -sSL "${config_url}" -o ipvanish.zip || exit
+    unzip -q ipvanish.zip || exit
+    find . \( -name "*.ovpn" -o -name "*.crt" \) -exec mv {} "${target_dir}/udp/" \;
+    popd > /dev/null || exit
+    _pre_config_update "${vpn_provider}" "${target_dir}" "udp"
 }

@@ -2,7 +2,7 @@
 
 ## Version 0.6.0
 
-* Support VyprVPN and SurfShark provider and config updater
+* Support VyprVPN, SurfShark and IPVanish provider and config updater
 
 ## Version 0.5.0
 

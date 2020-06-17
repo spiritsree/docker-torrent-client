@@ -1,5 +1,6 @@
 {
   "hidemyass": "https://vpn.hidemyass.com/vpn-config",
+  "ipvanish": "https://www.ipvanish.com/software/configs/configs.zip",
   "nordvpn": "https://api.nordvpn.com/files/zipv2",
   "pia": "https://www.privateinternetaccess.com/openvpn",
   "purevpn": "https://s3-us-west-1.amazonaws.com/heartbleed/windows/New+OVPN+Files.zip",

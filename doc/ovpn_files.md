@@ -2,6 +2,7 @@
 
 
 * [HideMyAss](https://support.hidemyass.com/hc/en-us/articles/202721966-I-need-the-config-files-ovpn-for-setting-up-HMA-Pro-VPN-on-my-router-smartphone-etc-Where-can-I-get-them-)
+* [IPVanish](https://support.ipvanish.com/hc/en-us/articles/360005438053-Windows-10-OpenVPN-Setup)
 * [NordVPN](https://nordvpn.com/servers/tools/)
 * [PIA](https://www.privateinternetaccess.com/helpdesk/kb/articles/where-can-i-find-your-ovpn-files)
 * [PureVPN](https://support.purevpn.com/openvpn-files)
