@@ -82,19 +82,19 @@ _update_config() {
         if [[ -n "${ca_conf}" ]]; then
             ca_file=$(echo "${ca_conf}" | awk '{ print $2 }')
             mv "${ca_file}" "${parent_config_path}/${vpn_provider}/${proto}/${ca_file}"
-            sed -i -rE "s/^ca .*?$/ca \/etc\/templates\/openvpn\/${vpn_provider}\/${proto}\/"${ca_file}"/" -- default.ovpn.tmpl
+            sed -i -rE "s/^ca .*?$/ca \/etc\/templates\/openvpn\/${vpn_provider}\/${proto}\/${ca_file}/" -- default.ovpn.tmpl
         fi
         cert_conf=$(grep -E '^cert .*' default.ovpn.tmpl)
         if [[ -n "${cert_conf}" ]]; then
             cert_file=$(echo "${cert_conf}" | awk '{ print $2 }')
             mv "${cert_file}" "${parent_config_path}/${vpn_provider}/${proto}/${cert_file}"
-            sed -i -rE "s/^cert .*?$/cert \/etc\/templates\/openvpn\/${vpn_provider}\/${proto}\/"${cert_file}"/" -- default.ovpn.tmpl
+            sed -i -rE "s/^cert .*?$/cert \/etc\/templates\/openvpn\/${vpn_provider}\/${proto}\/${cert_file}/" -- default.ovpn.tmpl
         fi
         key_conf=$(grep -E '^key .*' default.ovpn.tmpl)
         if [[ -n "${key_conf}" ]]; then
             key_file=$(echo "${key_conf}" | awk '{ print $2 }')
             mv "${key_file}" "${parent_config_path}/${vpn_provider}/${proto}/${key_file}"
-            sed -i -rE "s/^key .*?$/key \/etc\/templates\/openvpn\/${vpn_provider}\/${proto}\/"${key_file}"/" -- default.ovpn.tmpl
+            sed -i -rE "s/^key .*?$/key \/etc\/templates\/openvpn\/${vpn_provider}\/${proto}\/${key_file}/" -- default.ovpn.tmpl
         fi
         mv default.ovpn.tmpl "${parent_config_path}/${vpn_provider}/${proto}/default.ovpn.tmpl"
     fi
@@ -304,7 +304,7 @@ _update_tunnelbear_config() {
     curl -4 -sSL "${config_url}" -o tunnelbear.zip || exit
     unzip -q tunnelbear.zip || exit
     if [[ -d "openvpn" ]]; then
-        cd openvpn
+        cd openvpn || exit
     fi
     find . \( -name "*.ovpn" -o -name "*.crt" -o -name "*.key" \) -exec bash -c 'mv "${1}" "${0}/$(basename ${1// /_})"' "${target_dir}/udp" {} \;
     popd > /dev/null || exit
