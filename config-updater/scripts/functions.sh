@@ -84,7 +84,18 @@ _update_config() {
             mv "${ca_file}" "${parent_config_path}/${vpn_provider}/${proto}/${ca_file}"
             sed -i -rE "s/^ca .*?$/ca \/etc\/templates\/openvpn\/${vpn_provider}\/${proto}\/"${ca_file}"/" -- default.ovpn.tmpl
         fi
-
+        cert_conf=$(grep -E '^cert .*' default.ovpn.tmpl)
+        if [[ -n "${cert_conf}" ]]; then
+            cert_file=$(echo "${cert_conf}" | awk '{ print $2 }')
+            mv "${cert_file}" "${parent_config_path}/${vpn_provider}/${proto}/${cert_file}"
+            sed -i -rE "s/^cert .*?$/cert \/etc\/templates\/openvpn\/${vpn_provider}\/${proto}\/"${cert_file}"/" -- default.ovpn.tmpl
+        fi
+        key_conf=$(grep -E '^key .*' default.ovpn.tmpl)
+        if [[ -n "${key_conf}" ]]; then
+            key_file=$(echo "${key_conf}" | awk '{ print $2 }')
+            mv "${key_file}" "${parent_config_path}/${vpn_provider}/${proto}/${key_file}"
+            sed -i -rE "s/^key .*?$/key \/etc\/templates\/openvpn\/${vpn_provider}\/${proto}\/"${key_file}"/" -- default.ovpn.tmpl
+        fi
         mv default.ovpn.tmpl "${parent_config_path}/${vpn_provider}/${proto}/default.ovpn.tmpl"
     fi
     popd > /dev/null || exit
@@ -276,6 +287,26 @@ _update_ipvanish_config() {
     curl -4 -sSL "${config_url}" -o ipvanish.zip || exit
     unzip -q ipvanish.zip || exit
     find . \( -name "*.ovpn" -o -name "*.crt" \) -exec mv {} "${target_dir}/udp/" \;
+    popd > /dev/null || exit
+    _pre_config_update "${vpn_provider}" "${target_dir}" "udp"
+}
+
+# Get TunnelBear configs and update
+_update_tunnelbear_config() {
+    local vpn_provider=$1
+    local config_url=$2
+    local tmp_dir target_dir
+    echo "Getting TunnelBear configs using ${config_url}..."
+    tmp_dir=$(mktemp -d /tmp/vpn.XXXXXXXX)
+    target_dir=$(mktemp -d /tmp/target.XXXXXXXX)
+    mkdir "${target_dir}"/{tcp,udp}
+    pushd "${tmp_dir}" > /dev/null || exit
+    curl -4 -sSL "${config_url}" -o tunnelbear.zip || exit
+    unzip -q tunnelbear.zip || exit
+    if [[ -d "openvpn" ]]; then
+        cd openvpn
+    fi
+    find . \( -name "*.ovpn" -o -name "*.crt" -o -name "*.key" \) -exec bash -c 'mv "${1}" "${0}/$(basename ${1// /_})"' "${target_dir}/udp" {} \;
     popd > /dev/null || exit
     _pre_config_update "${vpn_provider}" "${target_dir}" "udp"
 }

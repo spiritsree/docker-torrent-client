@@ -14,6 +14,7 @@ You need to also pass `OPENVPN_HOSTNAME` and `OPENVPN_PROTO` or `OPENVPN_CONNECT
 * PIA
 * PureVPN
 * SurfShark
+* TunnelBear
 * VyprVPN
 
 
