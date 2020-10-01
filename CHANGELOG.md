@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.6.0
+
+* Support VyprVPN, SurfShark TunnelBear and IPVanish provider and config updater
+
 ## Version 0.5.0
 
 * Support custom provider by the user.

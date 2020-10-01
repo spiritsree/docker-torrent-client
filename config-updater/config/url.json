@@ -1,6 +1,10 @@
 {
   "hidemyass": "https://vpn.hidemyass.com/vpn-config",
+  "ipvanish": "https://www.ipvanish.com/software/configs/configs.zip",
   "nordvpn": "https://api.nordvpn.com/files/zipv2",
+  "pia": "https://www.privateinternetaccess.com/openvpn",
   "purevpn": "https://s3-us-west-1.amazonaws.com/heartbleed/windows/New+OVPN+Files.zip",
-  "pia": "https://www.privateinternetaccess.com/openvpn"
+  "surfshark": "https://account.surfshark.com/api/v1/server/configurations",
+  "tunnelbear": "https://s3.amazonaws.com/tunnelbear/linux/openvpn.zip",
+  "vyprvpn": "https://support.vyprvpn.com/hc/article_attachments/360052617332/Vypr_OpenVPN_20200320.zip"
 }
