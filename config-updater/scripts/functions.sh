@@ -346,9 +346,9 @@ _update_privatevpn_config() {
     pushd "${tmp_dir}" > /dev/null || exit
     curl -4 -sSL "${config_url}" -o privatevpn.zip || exit
     unzip -q privatevpn.zip || exit
-    egrep -lRZ 'sndbuf' . | xargs -0 -l sed -i -rE '/^sndbuf .+$/d'
-    egrep -lRZ 'rcvbuf' . | xargs -0 -l sed -i -rE '/^rcvbuf .+$/d'
-    egrep -lRZ 'ncp-disable' . | xargs -0 -l sed -i -rE '/^ncp-disable/d'
+    grep -lERZ 'sndbuf' . | xargs -0 -l sed -i -rE '/^sndbuf .+$/d'
+    grep -lERZ 'rcvbuf' . | xargs -0 -l sed -i -rE '/^rcvbuf .+$/d'
+    grep -lERZ 'ncp-disable' . | xargs -0 -l sed -i -rE '/^ncp-disable/d'
     find . -regextype posix-egrep -type f -regex ".*UDP.*.ovpn" -exec bash -c 'mv "${1}" "${0}/$(basename ${1// /_})"' "${target_dir}/udp" {} \;
     find . -regextype posix-egrep -type f -regex ".*TCP.*.ovpn" -exec bash -c 'mv "${1}" "${0}/$(basename ${1// /_})"' "${target_dir}/tcp" {} \;
     popd > /dev/null || exit
