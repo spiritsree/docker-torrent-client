@@ -13,7 +13,7 @@ RUN echo "**** add repositories ****" \
     && apk add --no-cache dumb-init > /dev/null \
     && apk add --no-cache openvpn > /dev/null \
     && apk add --no-cache transmission-daemon transmission-cli > /dev/null \
-    && apk add --no-cache tinyproxy > /dev/null\
+    && apk add --no-cache tinyproxy > /dev/null \
     && apk add --no-cache boost-python3@edge py3-wheel@edge > /dev/null \
     && apk add --no-cache deluge@testing > /dev/null \
     && apk add --no-cache ip6tables ufw@community > /dev/null \
