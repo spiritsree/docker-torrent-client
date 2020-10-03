@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.7.0
+
+* Fix alpine build
+* Use 3.12 alpine base image
+* Use 20.04 ubuntu base imahe
+
 ## Version 0.6.0
 
 * Support VyprVPN, SurfShark TunnelBear and IPVanish provider and config updater

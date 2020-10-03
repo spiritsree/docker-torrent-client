@@ -1,9 +1,10 @@
-FROM alpine:3.11
+FROM alpine:3.12
 
 ADD ./app/scripts /usr/local/scripts
 
 RUN echo "**** add repositories ****" \
     && echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories \
+    && echo "@community http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
     && echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories \
     && apk update --no-cache > /dev/null \
     && echo "**** install packages ****" \
@@ -12,10 +13,10 @@ RUN echo "**** add repositories ****" \
     && apk add --no-cache dumb-init > /dev/null \
     && apk add --no-cache openvpn > /dev/null \
     && apk add --no-cache transmission-daemon transmission-cli > /dev/null \
-    && apk add --no-cache tinyproxy > /dev/null \
-    && apk add --no-cache boost-python3@edge py3-wheel@edge deluge@testing > /dev/null \
+    && apk add --no-cache tinyproxy > /dev/null\
+    && apk add --no-cache boost-python3@edge py3-wheel@edge > /dev/null \
     && apk add --no-cache deluge@testing > /dev/null \
-    && apk add --no-cache ip6tables ufw@testing > /dev/null \
+    && apk add --no-cache ip6tables ufw@community > /dev/null \
     && bash /usr/local/scripts/install-app.sh \
     && echo "**** cleanup ****" \
     && rm -rf /tmp/* /var/tmp/* \
