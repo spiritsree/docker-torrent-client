@@ -4,7 +4,7 @@
   "nordvpn": "https://api.nordvpn.com/files/zipv2",
   "pia": "https://www.privateinternetaccess.com/openvpn",
   "purevpn": "https://s3-us-west-1.amazonaws.com/heartbleed/windows/New+OVPN+Files.zip",
-  "surfshark": "https://account.surfshark.com/api/v1/server/configurations",
+  "surfshark": "https://my.surfshark.com/vpn/api/v1/server/configurations",
   "tunnelbear": "https://s3.amazonaws.com/tunnelbear/linux/openvpn.zip",
   "vyprvpn": "https://support.vyprvpn.com/hc/article_attachments/360052617332/Vypr_OpenVPN_20200320.zip"
 }
