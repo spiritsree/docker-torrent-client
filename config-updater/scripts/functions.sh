@@ -59,7 +59,10 @@ _update_config() {
     sed -i 's/\r$//g' -- *.ovpn
     sed -i 's/^auth-user-pass$/auth-user-pass \/control\/ovpn-auth.txt/' -- *.ovpn
     sed -i -rE 's/^remote .+ ([[:digit:]]+)$/remote {{ .Env.OPENVPN_HOSTNAME }} \1/' -- *.ovpn
+    sed -i -rE 's/^remote .+ ([[:digit:]]+) (udp|tcp-client)$/remote {{ .Env.OPENVPN_HOSTNAME }} \1 \2/' -- *.ovpn
     sed -i -rE 's/^verify-x509-name .+ name$/verify-x509-name {{ .Env.OPENVPN_HOSTNAME }} name/' -- *.ovpn
+    sed -i -rE 's/^verify-x509-name .+ name-prefix$/verify-x509-name {{ .Env.OPENVPN_HOSTNAME_PREFIX }} name-prefix/' -- *.ovpn
+    sed -i '/<\/tls-crypt>/{:a;N;/<\/tls-crypt>/!ba};/<\/tls-crypt>/{ s/.*/<\/tls-crypt>/; t; d}' -- *.ovpn
     if [[ ! -d "${parent_config_path}/${vpn_provider}/${proto}" ]]; then
         mkdir -p "${parent_config_path}/${vpn_provider}/${proto}"
     fi
@@ -309,4 +312,64 @@ _update_tunnelbear_config() {
     find . \( -name "*.ovpn" -o -name "*.crt" -o -name "*.key" \) -exec bash -c 'mv "${1}" "${0}/$(basename ${1// /_})"' "${target_dir}/udp" {} \;
     popd > /dev/null || exit
     _pre_config_update "${vpn_provider}" "${target_dir}" "udp"
+}
+
+# Get ivpn configs and update
+_update_ipvn_config() {
+    local vpn_provider=$1
+    local config_url=$2
+    local tmp_dir target_dir
+    echo "Getting IVPN configs using ${config_url}..."
+    tmp_dir=$(mktemp -d /tmp/vpn.XXXXXXXX)
+    target_dir=$(mktemp -d /tmp/target.XXXXXXXX)
+    mkdir "${target_dir}"/{tcp,udp}
+    pushd "${tmp_dir}" > /dev/null || exit
+    curl -4 -sSL "${config_url}" -o ivpn.zip || exit
+    unzip -q ivpn.zip || exit
+    find . -name "*udp*.ovpn" -exec mv {} "${target_dir}/udp/" \;
+    find . -name "*tcp*.ovpn" -exec mv {} "${target_dir}/tcp/" \;
+    find . -name "*.ovpn" -exec mv {} "${target_dir}/udp/" \;
+    popd > /dev/null || exit
+    _pre_config_update "${vpn_provider}" "${target_dir}" "udp"
+}
+
+# Get PrivateVPN configs and update
+_update_privatevpn_config() {
+    local vpn_provider=$1
+    local config_url=$2
+    local extra_pattern=$3
+    local tmp_dir target_dir
+    echo "Getting PrivateVPN configs using ${config_url}..."
+    tmp_dir=$(mktemp -d /tmp/vpn.XXXXXXXX)
+    target_dir=$(mktemp -d /tmp/target.XXXXXXXX)
+    mkdir "${target_dir}"/{tcp,udp}
+    pushd "${tmp_dir}" > /dev/null || exit
+    curl -4 -sSL "${config_url}" -o privatevpn.zip || exit
+    unzip -q privatevpn.zip || exit
+    egrep -lRZ 'sndbuf' . | xargs -0 -l sed -i -rE '/^sndbuf .+$/d'
+    egrep -lRZ 'rcvbuf' . | xargs -0 -l sed -i -rE '/^rcvbuf .+$/d'
+    egrep -lRZ 'ncp-disable' . | xargs -0 -l sed -i -rE '/^ncp-disable/d'
+    find . -regextype posix-egrep -type f -regex ".*UDP.*.ovpn" -exec bash -c 'mv "${1}" "${0}/$(basename ${1// /_})"' "${target_dir}/udp" {} \;
+    find . -regextype posix-egrep -type f -regex ".*TCP.*.ovpn" -exec bash -c 'mv "${1}" "${0}/$(basename ${1// /_})"' "${target_dir}/tcp" {} \;
+    popd > /dev/null || exit
+    _pre_config_update "${vpn_provider}" "${target_dir}"
+}
+
+# Get BTGuard configs and update
+_update_btguard_config() {
+    local vpn_provider=$1
+    local config_url=$2
+    local extra_pattern=$3
+    local tmp_dir target_dir
+    echo "Getting BTGuard configs using ${config_url}..."
+    tmp_dir=$(mktemp -d /tmp/vpn.XXXXXXXX)
+    target_dir=$(mktemp -d /tmp/target.XXXXXXXX)
+    mkdir "${target_dir}"/{tcp,udp}
+    pushd "${tmp_dir}" > /dev/null || exit
+    curl -4 -sSL "${config_url}" -o btguard.zip || exit
+    unzip -q btguard.zip || exit
+    find . -name "*TCP*.ovpn" -exec bash -c 'mv "${1}" "${0}/$(basename ${1// /_})"' "${target_dir}/tcp" {} \;
+    find . -name "*.ovpn" -exec bash -c 'mv "${1}" "${0}/$(basename ${1// /_})"' "${target_dir}/udp" {} \;
+    popd > /dev/null || exit
+    _pre_config_update "${vpn_provider}" "${target_dir}"
 }

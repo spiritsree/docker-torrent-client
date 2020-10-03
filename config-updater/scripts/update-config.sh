@@ -4,8 +4,6 @@
 # shellcheck disable=SC1091
 source /usr/local/scripts/functions.sh
 
-DEBUG="false"
-
 if [[ "${DEBUG}" = "true" ]]; then
     set -x
 fi
@@ -46,6 +44,11 @@ elif [[ "${VPN_PROVIDER,,}" == "ipvanish" ]]; then
     _update_ipvanish_config "${VPN_PROVIDER,,}" "${PROVIDER_URL}"
 elif [[ "${VPN_PROVIDER,,}" == "tunnelbear" ]]; then
     _update_tunnelbear_config "${VPN_PROVIDER,,}" "${PROVIDER_URL}"
+elif [[ "${VPN_PROVIDER,,}" == "ivpn" ]]; then
+    _update_ipvn_config "${VPN_PROVIDER,,}" "${PROVIDER_URL}"
+elif [[ "${VPN_PROVIDER,,}" == "privatevpn" ]]; then
+    _update_privatevpn_config "${VPN_PROVIDER,,}" "${PROVIDER_URL}"
+elif [[ "${VPN_PROVIDER,,}" == "btguard" ]]; then
+    _update_btguard_config "${VPN_PROVIDER,,}" "${PROVIDER_URL}"
 fi
 
-rm -rf "${TMP_DIR}"

@@ -8,6 +8,7 @@ RUN apt-get update > /dev/null \
     && apt-get -y install --no-install-recommends curl wget jq unzip > /dev/null 2>&1
 
 ENV VPN_PROVIDER="NONE"
+ENV DEBUG="false"
 
 VOLUME /repo
 ADD ./scripts /usr/local/scripts

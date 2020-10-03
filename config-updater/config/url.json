@@ -1,8 +1,11 @@
 {
+  "btguard": "https://wiki.btguard.com/uploads/openvpn-config.zip",
   "hidemyass": "https://vpn.hidemyass.com/vpn-config",
   "ipvanish": "https://www.ipvanish.com/software/configs/configs.zip",
+  "ivpn": "https://www.ivpn.net/releases/config/ivpn-openvpn-config.zip",
   "nordvpn": "https://api.nordvpn.com/files/zipv2",
   "pia": "https://www.privateinternetaccess.com/openvpn",
+  "privatevpn": "https://privatevpn.com/client/PrivateVPN-TUN.zip",
   "purevpn": "https://s3-us-west-1.amazonaws.com/heartbleed/windows/New+OVPN+Files.zip",
   "surfshark": "https://my.surfshark.com/vpn/api/v1/server/configurations",
   "tunnelbear": "https://s3.amazonaws.com/tunnelbear/linux/openvpn.zip",

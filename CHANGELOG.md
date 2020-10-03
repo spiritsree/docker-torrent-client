@@ -4,7 +4,8 @@
 
 * Fix alpine build
 * Use 3.12 alpine base image
-* Use 20.04 ubuntu base imahe
+* Use 20.04 ubuntu base image
+* Support BTGuard, IVPN, PrivateVPN providers
 
 ## Version 0.6.0
 

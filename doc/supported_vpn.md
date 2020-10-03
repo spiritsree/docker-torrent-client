@@ -6,12 +6,15 @@ You need to pass `OPENVPN_USERNAME`, `OPENVPN_PASSWORD` for authentication with 
 
 You need to also pass `OPENVPN_HOSTNAME` and `OPENVPN_PROTO` or `OPENVPN_CONNECTION` (which is a combination of both in the form `hostname:proto`).
 
+* BTGuard
 * FastestVPN
 * HideMe
 * HideMyAss
 * IPVanish
+* IVPN
 * NordVPN (Check [Nord API](nordvpn_api.md) for more details on the Nord VPN Public API)
 * PIA
+* PrivateVPN
 * PureVPN
 * SurfShark
 * TunnelBear
