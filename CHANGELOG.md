@@ -6,7 +6,7 @@
 * Use 3.12 alpine base image
 * Use 20.04 ubuntu base image
 * Support BTGuard, IVPN, PrivateVPN providers
-* Update PIA servers
+* Update PIA provider configs and other serverlists
 
 ## Version 0.6.0
 
