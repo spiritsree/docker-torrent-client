@@ -12,7 +12,7 @@ _lowercase() {
 _get_template_path() {
     local mount_dir="/repo"
     local config_files openvpn_dir
-    config_files=$(find "${mount_dir}" -type f -name "vpn_servers.json")
+    config_files=$(find "${mount_dir}" -type f -name "vpn_servers.json" -print -quit)
     openvpn_dir=$(dirname "${config_files}")
     echo "${openvpn_dir}"
 }
