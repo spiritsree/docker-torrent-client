@@ -110,6 +110,8 @@ if [[ "${OPENVPN_HOSTNAME}" == "NONE" ]] || [[ -z "${OPENVPN_HOSTNAME}" ]]; then
         # grep -E -o "^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
         if ! echo "${OPENVPN_HOSTNAME// /}" | grep -E -o '^[0-9][0-9\.]+[0-9]$' > /dev/null; then
             OPENVPN_HOSTNAME_IP=$(dig +short "${OPENVPN_HOSTNAME}" | grep -v '\.$' | tail -1)
+            OPENVPN_HOSTNAME_PREFIX=$(echo "${OPENVPN_HOSTNAME}" | awk -F'.' '{ print $1 }')
+            export OPENVPN_HOSTNAME_PREFIX
         else
             OPENVPN_HOSTNAME_IP="${OPENVPN_HOSTNAME}"
         fi

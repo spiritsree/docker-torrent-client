@@ -18,3 +18,11 @@ docker run --rm -d \
             -v <repo-dir>:/repo \
             config-updater:latest
 ```
+
+```
+docker run --rm \
+            -e DEBUG=true \
+            -e VPN_PROVIDER=<vpn-provider> \
+            -v <repo-dir>:/repo \
+            config-updater:latest
+```
